@@ -12,11 +12,11 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-app = Flask(__name__, template_folder='.')
+app = Flask(__name__)
 
 @app.route('/')
 def index():
-    return send_file('index.html')
+    return render_template('index.html')
 
 @app.route('/api/plan-name')
 def api_plan_name():
