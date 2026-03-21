@@ -13,7 +13,7 @@ from collections import defaultdict
 # ─────────────────────────────────────────────────────────────
 ORGANIZATION = "osde-devops"
 PROJECT      = "Desarrollo_Salus"
-PAT          = os.environ.get("AZURE_DEVOPS_PAT", "7uqXY8uknpTAXQ8rGkG1IsEJ4j59jIqCN3W64ru5FT9dvx6PGb5yJQQJ99CCACAAAAAs8K2RAAASAZDO1IEm")
+PAT          = os.environ.get("AZURE_DEVOPS_PAT", "")
 
 # IDs de los Test Plans a incluir (None = todos los activos)
 TEST_PLAN_IDS = [90545]
