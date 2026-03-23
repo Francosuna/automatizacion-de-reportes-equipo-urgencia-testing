@@ -1,0 +1,321 @@
+
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  .r { background: #F5F4F0; padding: 24px 16px; font-family: sans-serif; font-size: 13px; color: #1a1a18; }
+  .max { max-width: 880px; margin: 0 auto; }
+  .card { background:#fff; border-radius:12px; border:1px solid #EDECEA; margin-bottom:14px; overflow:hidden; }
+  .card-head { padding:12px 18px; border-bottom:1px solid #EDECEA; background:#FAFAF8; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; }
+  .card-body { padding:14px 18px; }
+  .tag { font-size:10px; font-weight:500; color:#888; text-transform:uppercase; letter-spacing:.06em; margin-bottom:3px; }
+  .title { font-size:15px; font-weight:600; color:#1a1a18; }
+  .sub { font-size:13px; color:#888; margin-top:2px; }
+  .badge { font-size:11px; font-weight:500; padding:3px 10px; border-radius:20px; }
+  .badge-fail { background:#FCEBEB; color:#791F1F; border:1px solid #F09595; }
+  .badge-ok   { background:#EAF3DE; color:#3B6D11; }
+  .pill { font-size:11px; font-weight:500; padding:2px 8px; border-radius:20px; white-space:nowrap; display:inline-block; margin:1px; }
+  .p-pass { background:#EAF3DE; color:#3B6D11; }
+  .p-fail { background:#FCEBEB; color:#791F1F; }
+  .p-blk  { background:#FAEEDA; color:#633806; }
+  .p-nr   { background:#F1EFE8; color:#5F5E5A; }
+  .p-crit { background:#FCEBEB; color:#791F1F; }
+  .p-alto { background:#FAEEDA; color:#633806; }
+  .p-med  { background:#E6F1FB; color:#185FA5; }
+  .p-bajo { background:#EAF3DE; color:#3B6D11; }
+  .bar { display:flex; gap:2px; height:7px; border-radius:4px; overflow:hidden; margin:8px 0 4px; }
+  .kpi-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin-bottom:14px; }
+  .kpi { border-radius:10px; padding:12px 14px; }
+  .kpi-lbl { font-size:10px; font-weight:500; text-transform:uppercase; letter-spacing:.05em; margin-bottom:3px; }
+  .kpi-num { font-size:24px; font-weight:600; margin-bottom:2px; }
+  .kpi-pct { font-size:11px; }
+  .sec-lbl { font-size:11px; font-weight:500; color:#888; text-transform:uppercase; letter-spacing:.07em; margin:0 0 10px; }
+  .plan-sep { font-size:10px; font-weight:500; color:#888; text-transform:uppercase; letter-spacing:.07em; padding:8px 0 6px; border-bottom:1px solid #EDECEA; margin:14px 0 10px; }
+  table.t { width:100%; border-collapse:collapse; }
+  table.t th { padding:7px 14px; text-align:left; font-size:10px; font-weight:500; color:#888; text-transform:uppercase; background:#F5F4F0; }
+  table.t td { padding:8px 14px; font-size:12px; color:#3d3d3a; border-top:1px solid #EDECEA; }
+  .charts-row { display:grid; grid-template-columns:1fr 1fr; gap:16px; padding:14px 18px; border-bottom:1px solid #EDECEA; }
+  .chart-box { text-align:center; }
+  .chart-lbl { font-size:10px; font-weight:500; color:#888; text-transform:uppercase; letter-spacing:.05em; margin-bottom:8px; }
+  .meta-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; margin-top:16px; padding-top:16px; border-top:1px solid #EDECEA; }
+  .meta-lbl { font-size:10px; color:#888; text-transform:uppercase; letter-spacing:.05em; margin-bottom:4px; }
+  .meta-val { font-size:13px; font-weight:500; color:#1a1a18; }
+  .resp { font-size:12px; color:#3d3d3a; padding:1px 0; }
+  .print-btn { font-family:sans-serif; font-size:11px; padding:4px 12px; border-radius:7px; border:1px solid #EDECEA; background:#fff; cursor:pointer; color:#3d3d3a; }
+  .sev-pill { font-size:11px; font-weight:500; padding:2px 8px; border-radius:20px; white-space:nowrap; display:inline-block; margin:1px; }
+</style>
+<div class="r"><div class="max">
+
+  <!-- Header -->
+  <div class="card">
+    <div class="card-head">
+      <div>
+        <div class="tag">Agrupador Urgencias — Salus</div>
+        <div class="title">Informe Final de Pruebas</div>
+        <div class="sub">SALUS WEB · Ciclo N°2 · v17.2.1</div>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <span class="badge badge-fail">Fallido con incidentes críticos y altos</span>
+        <button class="print-btn">Exportar PDF</button>
+      </div>
+    </div>
+    <div class="card-body">
+      <div class="meta-grid">
+        <div><div class="meta-lbl">Producto</div><div class="meta-val">SALUS WEB</div><div style="font-size:11px;color:#888;margin-top:2px;">Versión v17.2.1</div></div>
+        <div>
+          <div class="meta-lbl">Plan de ejecución</div>
+          <div style="font-size:12px;color:#3d3d3a;line-height:1.6;"><span style="color:#888;">Planificado:</span> 07/11/2025 → 26/11/2025<br><span style="color:#888;">Real:</span> 07/11/2025 → 25/11/2025</div>
+        </div>
+        <div>
+          <div class="meta-lbl">Responsables de ejecución</div>
+          <div class="resp">Gloria Huilen Garcia</div>
+          <div class="resp">Ezequiel Tissier</div>
+          <div class="resp">Franco Osuna</div>
+          <div class="resp">Anthony Soto Marquez</div>
+          <div class="resp">Rafael Cañizalez Mendoza</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 1. Especificaciones -->
+  <div class="card">
+    <div class="card-body">
+      <div class="sec-lbl" style="margin-bottom:8px;">1 · Especificaciones</div>
+      <div style="font-size:10px;font-weight:500;color:#888;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;">Alcance v17.2.1</div>
+      <ul style="padding-left:16px;">
+        <li style="font-size:13px;color:#3d3d3a;padding:2px 0;">Smoke Test</li>
+        <li style="font-size:13px;color:#3d3d3a;padding:2px 0;">Paquete de incidencias entregadas</li>
+        <li style="font-size:13px;color:#3d3d3a;padding:2px 0;">Pruebas integrales Punta a Punta — Regresión Ambu</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- 2. Detalle de pruebas -->
+  <div class="card">
+    <div class="card-head"><div class="sec-lbl" style="margin:0;">2 · Detalle de pruebas</div></div>
+    <table class="t">
+      <thead><tr><th>Producto</th><th>Título / Descripción</th><th>Tipo</th><th>Resultado</th></tr></thead>
+      <tbody>
+        <tr><td style="color:#888;">SALUS WEB / Test Plan Salus Web</td><td>Smoke Test</td><td style="color:#888;">Funcional</td><td>Fallido — Exitosos: 40 (88.9%) / Con incidencia: 5 (11.1%)</td></tr>
+        <tr><td style="color:#888;">SALUS WEB / Test Plan Salus Web</td><td>Paquete de incidencias</td><td style="color:#888;">Funcional</td><td>Fallido — Exitosos: 89 (91.8%) / Con incidencia: 8 (8.2%)</td></tr>
+        <tr><td style="color:#888;">SALUS WEB / Test Plan Salus Web</td><td>Salir de Salus</td><td style="color:#888;">Funcional</td><td>Exitoso (54 de 54)</td></tr>
+        <tr><td style="color:#888;">SALUS WEB / Test Plan Integraciones</td><td>Integración SALUS / Ambu</td><td style="color:#888;">Funcional</td><td>Exitoso (8 de 8) — No Aplica: 2</td></tr>
+        <tr><td style="color:#888;">SALUS WEB / Test Plan Integraciones</td><td>Incidencias resueltas</td><td style="color:#888;">Funcional</td><td>Fallido — Exitosos: 7 (77.8%) / Con incidencia: 2 (22.2%)</td></tr>
+        <tr><td style="color:#888;">SALUS WEB / Test Plan Integraciones</td><td>Punta a Punta</td><td style="color:#888;">Funcional</td><td>Exitoso (15 de 15) — No Aplica: 2</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- 3. KPIs -->
+  <div class="sec-lbl">3 · Resultados de las pruebas</div>
+  <div class="kpi-grid">
+    <div class="kpi" style="background:#EAF3DE;"><div class="kpi-lbl" style="color:#3B6D11;">Passed</div><div class="kpi-num" style="color:#27500A;">213</div><div class="kpi-pct" style="color:#3B6D11;">93.0% del total</div></div>
+    <div class="kpi" style="background:#FCEBEB;"><div class="kpi-lbl" style="color:#A32D2D;">Failed</div><div class="kpi-num" style="color:#501313;">15</div><div class="kpi-pct" style="color:#A32D2D;">6.6% del total</div></div>
+    <div class="kpi" style="background:#FAEEDA;"><div class="kpi-lbl" style="color:#854F0B;">Blocked</div><div class="kpi-num" style="color:#412402;">0</div><div class="kpi-pct" style="color:#854F0B;">0% del total</div></div>
+    <div class="kpi" style="background:#F1EFE8;"><div class="kpi-lbl" style="color:#5F5E5A;">Not Run</div><div class="kpi-num" style="color:#2C2C2A;">4</div><div class="kpi-pct" style="color:#5F5E5A;">1.7% del total</div></div>
+  </div>
+
+  <!-- Plan 1 -->
+  <div class="plan-sep">Test plan · Test Plan Salus Web — MVP 2 Ciclo 2</div>
+
+  <!-- Suite: Smoke Test -->
+  <div class="card">
+    <div class="card-head">
+      <div><div class="tag">SALUS WEB</div><div class="title">Smoke Test</div></div>
+      <span class="badge badge-fail">Fallido con incidentes</span>
+    </div>
+    <div class="card-body">
+      <div style="font-size:13px;color:#3d3d3a;margin-bottom:6px;"><b>Total, Casos de Prueba: 45</b></div>
+      <div style="font-size:13px;color:#3d3d3a;margin-bottom:2px;">Casos exitosos: <b>40 (88.9%)</b></div>
+      <div style="font-size:13px;color:#3d3d3a;margin-bottom:8px;">Casos con incidencia: <b>5 (11.1%)</b></div>
+      <div class="bar"><div style="width:88.9%;background:#639922;height:100%;border-radius:2px;"></div><div style="width:11.1%;background:#E24B4A;height:100%;border-radius:2px;"></div></div>
+      <span class="pill p-pass">Passed <b>40</b></span><span class="pill p-fail">Failed <b>5</b></span>
+    </div>
+  </div>
+
+  <!-- Suite: Paquete de incidencias -->
+  <div class="card">
+    <div class="card-head">
+      <div><div class="tag">SALUS WEB</div><div class="title">Paquete de incidencias</div></div>
+      <span class="badge badge-fail">Fallido con incidentes</span>
+    </div>
+    <div class="card-body">
+      <div style="font-size:13px;color:#3d3d3a;margin-bottom:6px;"><b>Total, Casos de Prueba: 97</b></div>
+      <div style="font-size:13px;color:#3d3d3a;margin-bottom:2px;">Casos exitosos: <b>89 (91.8%)</b></div>
+      <div style="font-size:13px;color:#3d3d3a;margin-bottom:8px;">Casos con incidencia: <b>8 (8.2%)</b></div>
+      <div class="bar"><div style="width:91.8%;background:#639922;height:100%;border-radius:2px;"></div><div style="width:8.2%;background:#E24B4A;height:100%;border-radius:2px;"></div></div>
+      <span class="pill p-pass">Passed <b>89</b></span><span class="pill p-fail">Failed <b>8</b></span>
+    </div>
+  </div>
+
+  <!-- Suite: Salir de Salus -->
+  <div class="card">
+    <div class="card-head">
+      <div><div class="tag">SALUS WEB</div><div class="title">Salir de Salus</div></div>
+      <span class="badge badge-ok">Exitoso</span>
+    </div>
+    <div class="card-body">
+      <div style="font-size:13px;color:#3d3d3a;margin-bottom:6px;"><b>Total, Casos de Prueba: 54</b></div>
+      <div style="font-size:13px;color:#3d3d3a;margin-bottom:2px;">Casos exitosos: <b>54 (100%)</b></div>
+      <div style="font-size:13px;color:#3d3d3a;margin-bottom:8px;">Casos con incidencia: <b>0 (0%)</b></div>
+      <div class="bar"><div style="width:100%;background:#639922;height:100%;border-radius:2px;"></div></div>
+      <span class="pill p-pass">Passed <b>54</b></span>
+    </div>
+  </div>
+
+  <!-- Plan 2 -->
+  <div class="plan-sep">Test plan · Test Plan Integraciones — Ciclo 2</div>
+
+  <!-- Suite: Ambu -->
+  <div class="card">
+    <div class="card-head">
+      <div><div class="tag">SALUS WEB / Integración</div><div class="title">Integración SALUS / Ambu</div></div>
+      <span class="badge badge-ok">Exitoso</span>
+    </div>
+    <div class="card-body">
+      <div style="font-size:13px;color:#3d3d3a;margin-bottom:6px;"><b>Total, Casos de Prueba: 10</b></div>
+      <div style="font-size:13px;color:#3d3d3a;margin-bottom:2px;">Casos exitosos: <b>8 (80%)</b></div>
+      <div style="font-size:13px;color:#3d3d3a;margin-bottom:8px;">Casos con incidencia: <b>0 (0%)</b> <span style="font-size:11px;color:#888;">· Casos No Aplica: 2 (20%)</span></div>
+      <div class="bar"><div style="width:80%;background:#639922;height:100%;border-radius:2px;"></div><div style="width:20%;background:#D3D1C7;height:100%;border-radius:2px;"></div></div>
+      <span class="pill p-pass">Passed <b>8</b></span><span class="pill p-nr">Not Run <b>2</b></span>
+    </div>
+  </div>
+
+  <!-- Suite: Incidencias -->
+  <div class="card">
+    <div class="card-head">
+      <div><div class="tag">SALUS WEB / Integración</div><div class="title">Incidencias resueltas</div></div>
+      <span class="badge badge-fail">Fallido con incidentes</span>
+    </div>
+    <div class="card-body">
+      <div style="font-size:13px;color:#3d3d3a;margin-bottom:6px;"><b>Total, Casos de Prueba: 9</b></div>
+      <div style="font-size:13px;color:#3d3d3a;margin-bottom:2px;">Casos exitosos: <b>7 (77.8%)</b></div>
+      <div style="font-size:13px;color:#3d3d3a;margin-bottom:8px;">Casos con incidencia: <b>2 (22.2%)</b></div>
+      <div class="bar"><div style="width:77.8%;background:#639922;height:100%;border-radius:2px;"></div><div style="width:22.2%;background:#E24B4A;height:100%;border-radius:2px;"></div></div>
+      <span class="pill p-pass">Passed <b>7</b></span><span class="pill p-fail">Failed <b>2</b></span>
+    </div>
+  </div>
+
+  <!-- Suite: Punta a Punta -->
+  <div class="card">
+    <div class="card-head">
+      <div><div class="tag">SALUS WEB / Integración</div><div class="title">Punta a Punta</div></div>
+      <span class="badge badge-ok">Exitoso</span>
+    </div>
+    <div class="card-body">
+      <div style="font-size:13px;color:#3d3d3a;margin-bottom:6px;"><b>Total, Casos de Prueba: 17</b></div>
+      <div style="font-size:13px;color:#3d3d3a;margin-bottom:2px;">Casos exitosos: <b>15 (88.2%)</b></div>
+      <div style="font-size:13px;color:#3d3d3a;margin-bottom:8px;">Casos con incidencia: <b>0 (0%)</b> <span style="font-size:11px;color:#888;">· Casos No Aplica: 2 (11.8%)</span></div>
+      <div class="bar"><div style="width:88.2%;background:#639922;height:100%;border-radius:2px;"></div><div style="width:11.8%;background:#D3D1C7;height:100%;border-radius:2px;"></div></div>
+      <span class="pill p-pass">Passed <b>15</b></span><span class="pill p-nr">Not Run <b>2</b></span>
+    </div>
+  </div>
+
+  <!-- 4. Incidentes -->
+  <div class="sec-lbl" style="margin-top:4px;">4 · Detalle de incidentes</div>
+  <div class="card">
+    <div class="card-head" style="flex-direction:column;align-items:flex-start;gap:6px;">
+      <div class="tag">Incidentes detectados durante las pruebas del ciclo</div>
+      <div style="font-size:13px;color:#3d3d3a;">UH #90424 — Ciclo N°2 v17.2.1</div>
+      <div>
+        <span class="pill p-crit">Crítico <b>2</b></span>
+        <span class="pill p-alto">Alto <b>4</b></span>
+        <span class="pill p-med">Mediano <b>3</b></span>
+        <span class="pill p-bajo">Bajo <b>3</b></span>
+        <span style="font-size:11px;color:#888;margin-left:6px;">12 incidentes</span>
+      </div>
+      <div style="font-size:12px;color:#888;"><b>Criticidades:</b> Crítico: 17% · Alto: 33% · Mediano: 25% · Bajo: 25%</div>
+    </div>
+    <div class="charts-row">
+      <div class="chart-box"><div class="chart-lbl">Por criticidad</div><canvas id="cs" width="160" height="160"></canvas></div>
+      <div class="chart-box"><div class="chart-lbl">Por módulo / funcionalidad</div><canvas id="cm" width="160" height="160"></canvas></div>
+    </div>
+    <div style="padding:10px 18px 4px;font-size:10px;font-weight:500;color:#888;text-transform:uppercase;letter-spacing:.05em;">Por módulo / funcionalidad</div>
+    <table class="t" style="margin-bottom:8px;">
+      <thead><tr><th>Módulo</th><th style="text-align:center;">Total</th><th>Desglose</th></tr></thead>
+      <tbody>
+        <tr><td>Formulario del caso</td><td style="text-align:center;">8</td><td><span class="pill p-crit">Crítico 1</span><span class="pill p-alto">Alto 4</span><span class="pill p-med">Mediano 3</span></td></tr>
+        <tr><td>Listados generales</td><td style="text-align:center;">2</td><td><span class="pill p-crit">Crítico 1</span><span class="pill p-bajo">Bajo 1</span></td></tr>
+        <tr><td>Integraciones</td><td style="text-align:center;">1</td><td><span class="pill p-bajo">Bajo 1</span></td></tr>
+        <tr><td>Lanzadera</td><td style="text-align:center;">1</td><td><span class="pill p-bajo">Bajo 1</span></td></tr>
+      </tbody>
+    </table>
+    <div style="padding:10px 18px 4px;font-size:10px;font-weight:500;color:#888;text-transform:uppercase;letter-spacing:.05em;">Detalle de bugs</div>
+    <table class="t">
+      <thead><tr><th>#</th><th>Título</th><th style="text-align:center;">Severidad</th><th style="text-align:center;">Estado</th></tr></thead>
+      <tbody>
+        <tr><td style="color:#888;">#90201</td><td>Formulario del caso — Error al guardar sin cobertura</td><td style="text-align:center;"><span class="pill p-crit">Crítico</span></td><td style="text-align:center;"><span class="pill p-fail">Active</span></td></tr>
+        <tr><td style="color:#888;">#90185</td><td>Listados — Filtro de fecha no respeta zona horaria</td><td style="text-align:center;"><span class="pill p-crit">Crítico</span></td><td style="text-align:center;"><span class="pill p-fail">Active</span></td></tr>
+        <tr><td style="color:#888;">#90174</td><td>Formulario — Validación de campos no muestra mensaje</td><td style="text-align:center;"><span class="pill p-alto">Alto</span></td><td style="text-align:center;"><span class="pill p-bajo">Resolved</span></td></tr>
+        <tr><td style="color:#888;">#90166</td><td>Formulario — Dropdown de prestador no carga</td><td style="text-align:center;"><span class="pill p-alto">Alto</span></td><td style="text-align:center;"><span class="pill p-fail">Active</span></td></tr>
+        <tr><td style="color:#888;">#90143</td><td>Lanzadera — Ícono desalineado en mobile</td><td style="text-align:center;"><span class="pill p-bajo">Bajo</span></td><td style="text-align:center;"><span class="pill p-bajo">Resolved</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- 4.2 Corregidas ciclo anterior -->
+  <div class="sec-lbl">4.2 · Paquete de incidentes corregidas — ciclo anterior</div>
+  <div class="card">
+    <div class="card-head" style="flex-direction:column;align-items:flex-start;gap:6px;">
+      <div class="tag">Incidencias corregidas del ciclo anterior</div>
+      <div style="font-size:13px;color:#3d3d3a;">UH #88300 — Ciclo N°1 v17.1</div>
+      <div><span class="pill p-crit">Crítico <b>1</b></span><span class="pill p-alto">Alto <b>1</b></span><span class="pill p-med">Mediano <b>3</b></span><span class="pill p-bajo">Bajo <b>3</b></span><span style="font-size:11px;color:#888;margin-left:6px;">8 corregidos</span></div>
+    </div>
+    <table class="t">
+      <thead><tr><th>#</th><th>Título</th><th style="text-align:center;">Severidad</th><th style="text-align:center;">Estado</th></tr></thead>
+      <tbody>
+        <tr><td style="color:#888;">#88201</td><td>Seguridad — Error de autenticación en sesión expirada</td><td style="text-align:center;"><span class="pill p-crit">Crítico</span></td><td style="text-align:center;"><span class="pill p-bajo">Closed</span></td></tr>
+        <tr><td style="color:#888;">#88180</td><td>Formulario contacto — Datos no se guardan correctamente</td><td style="text-align:center;"><span class="pill p-alto">Alto</span></td><td style="text-align:center;"><span class="pill p-bajo">Resolved</span></td></tr>
+        <tr><td style="color:#888;">#88155</td><td>Selectores — Lista desplegable vacía en algunos casos</td><td style="text-align:center;"><span class="pill p-med">Mediano</span></td><td style="text-align:center;"><span class="pill p-bajo">Closed</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- 4.3 Pendientes -->
+  <div class="sec-lbl">4.3 · Incidencias pendientes de corrección — ciclo anterior</div>
+  <div class="card">
+    <div class="card-head" style="flex-direction:column;align-items:flex-start;gap:6px;">
+      <div class="tag">Incidencias pendientes del ciclo anterior</div>
+      <div style="font-size:13px;color:#3d3d3a;">UH #88300 — Ciclo N°1 v17.1</div>
+      <div><span class="pill p-crit">Crítico <b>1</b></span><span class="pill p-alto">Alto <b>2</b></span><span class="pill p-med">Mediano <b>4</b></span><span style="font-size:11px;color:#888;margin-left:6px;">7 pendientes</span></div>
+    </div>
+    <table class="t">
+      <thead><tr><th>#</th><th>Título</th><th style="text-align:center;">Severidad</th><th style="text-align:center;">Estado</th></tr></thead>
+      <tbody>
+        <tr><td style="color:#888;">#88142</td><td>Formulario del caso — Cálculo incorrecto de cobertura</td><td style="text-align:center;"><span class="pill p-crit">Crítico</span></td><td style="text-align:center;"><span class="pill p-fail">Active</span></td></tr>
+        <tr><td style="color:#888;">#88130</td><td>Integraciones — Timeout en llamada a servicio externo</td><td style="text-align:center;"><span class="pill p-alto">Alto</span></td><td style="text-align:center;"><span class="pill p-fail">Active</span></td></tr>
+        <tr><td style="color:#888;">#88118</td><td>Formulario contacto — Validación de CUIL falla en edge cases</td><td style="text-align:center;"><span class="pill p-med">Mediano</span></td><td style="text-align:center;"><span class="pill p-fail">Active</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- 5. Riesgos -->
+  <div class="card">
+    <div class="card-body">
+      <div class="sec-lbl" style="margin-bottom:8px;">5 · Detalle de riesgos detectados</div>
+      <div style="font-size:13px;color:#888;">N/A</div>
+      <div style="margin-top:10px;"><div style="font-size:10px;font-weight:500;color:#888;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px;">Observaciones</div><div style="font-size:13px;color:#888;">N/A</div></div>
+    </div>
+  </div>
+
+  <!-- 6. Referencia de severidad -->
+  <div class="sec-lbl">6 · Referencia de severidad y prioridad de errores</div>
+  <div class="card">
+    <table class="t">
+      <thead><tr><th>Severidad</th><th>Impacto</th><th>Ejemplos</th><th>Urgencia / Acción</th></tr></thead>
+      <tbody>
+        <tr><td><span class="pill p-bajo">Bajo</span></td><td>Mínimo. No afecta funcionalidad principal.</td><td>Errores tipográficos, detalles visuales.</td><td>Puede esperar.</td></tr>
+        <tr><td><span class="pill p-med">Mediano</span></td><td>Afecta funcionalidades secundarias.</td><td>Botón con alternativa disponible.</td><td>Planificar para próximos sprints.</td></tr>
+        <tr><td><span class="pill p-alto">Alto</span></td><td>Afecta funcionalidades clave.</td><td>Fallos en formularios críticos.</td><td>Requiere atención en próxima versión.</td></tr>
+        <tr><td><span class="pill p-crit">Crítico</span></td><td>Bloquea el sistema o pérdida de datos.</td><td>Caída del sistema, fuga de datos.</td><td>Urgencia máxima. Hotfix inmediato.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div style="text-align:center;padding:14px 0;font-size:11px;color:#aaa;">Salus QA Reporter · 22/03/2026 · osde-devops / Desarrollo_Salus</div>
+</div></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script>
+new Chart(document.getElementById('cs'),{type:'doughnut',data:{labels:['Crítico','Alto','Mediano','Bajo'],datasets:[{data:[2,4,3,3],backgroundColor:['#E24B4A','#BA7517','#378ADD','#639922'],borderWidth:2,borderColor:'#fff'}]},options:{plugins:{legend:{position:'bottom',labels:{font:{size:11},padding:6}}},cutout:'65%',animation:false}});
+new Chart(document.getElementById('cm'),{type:'doughnut',data:{labels:['Formulario del caso','Listados','Integraciones','Lanzadera'],datasets:[{data:[8,2,1,1],backgroundColor:['#7F77DD','#1D9E75','#D85A30','#378ADD'],borderWidth:2,borderColor:'#fff'}]},options:{plugins:{legend:{position:'bottom',labels:{font:{size:11},padding:6}}},cutout:'65%',animation:false}});
+</script>

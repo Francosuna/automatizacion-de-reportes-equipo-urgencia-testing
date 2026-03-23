@@ -132,15 +132,15 @@ def build_plan_data(plan_id):
             counts[_norm_status(pt.get("results",{}).get("outcome","notRun"))] += 1
         total = len(points)
 
+        # Saltear suites contenedoras que no tienen casos directos
+        if total == 0:
+            continue
+
         fail  = counts.get("failed",0)
         block = counts.get("blocked",0)
-        noapl = counts.get("notapplicable",0)
         passed = counts.get("passed",0)
 
-        if total == 0:
-            result_label = "Sin casos"
-            result_style = "background:#F1EFE8;color:#5F5E5A;"
-        elif fail == 0 and block == 0:
+        if fail == 0 and block == 0:
             result_label = "Exitoso"
             result_style = "background:#EAF3DE;color:#3B6D11;"
         else:
@@ -171,6 +171,36 @@ def build_plan_data(plan_id):
         "result_label": result_label, "result_style": result_style,
     }, None
 
+def _collect_bugs_from_feature(feature_id):
+    """
+    Estructura: Feature → User Stories → Bugs
+    Recorre las User Stories hijas de la Feature y trae sus bugs,
+    usando el nombre de la User Story como módulo.
+    """
+    result = []  # lista de (bug_workitem, module_name)
+
+    us_children = get_work_item_children(feature_id)
+    for us in us_children:
+        wi_type = us.get("fields",{}).get("System.WorkItemType","")
+        us_title = us.get("fields",{}).get("System.Title","Sin módulo")
+
+        if wi_type == "Bug":
+            # Bug directo bajo la Feature
+            result.append((us, us_title))
+        elif wi_type in ("User Story","Feature","Task","Epic"):
+            # Bajar a buscar bugs dentro de la User Story
+            bug_children = get_work_item_children(us["id"])
+            for child in bug_children:
+                if child.get("fields",{}).get("System.WorkItemType","") == "Bug":
+                    # Módulo = nombre de la User Story madre, limpiando prefijo "MVP-X. CTX. "
+                    raw_name = us_title
+                    # Quitar prefijos tipo "MVP-2. CT2. " para quedarse con la funcionalidad
+                    parts = raw_name.split(". ")
+                    module = ". ".join(parts[2:]) if len(parts) > 2 else raw_name
+                    result.append((child, module))
+
+    return result
+
 def build_incident_data(uh_id):
     if not uh_id:
         return {"total":0,"uh_title":"","incidents":[],"by_sev":{},"by_module":{}}
@@ -179,17 +209,16 @@ def build_incident_data(uh_id):
         return {"total":0,"uh_title":f"Error UH {uh_id}","incidents":[],"by_sev":{},"by_module":{}}
 
     uh_title = uh.get("fields",{}).get("System.Title", f"UH #{uh_id}")
-    children = get_work_item_children(uh_id)
-    bugs     = [c for c in children if c.get("fields",{}).get("System.WorkItemType","") == "Bug"]
+
+    # Feature → User Stories → Bugs, módulo = nombre de la User Story
+    bug_pairs = _collect_bugs_from_feature(uh_id)
 
     incidents = []
-    for bug in bugs:
-        f      = bug.get("fields",{})
-        sev    = _norm_sev(f.get("Microsoft.VSTS.Common.Severity") or f.get("Microsoft.VSTS.Common.Priority"))
-        title  = f.get("System.Title","Sin título")
-        state  = f.get("System.State","")
-        area   = f.get("System.AreaPath","").split("\\")[-1]
-        module = area if area and area != PROJECT else title.split("-")[0].strip()
+    for bug, module in bug_pairs:
+        f     = bug.get("fields",{})
+        sev   = _norm_sev(f.get("Microsoft.VSTS.Common.Severity") or f.get("Microsoft.VSTS.Common.Priority"))
+        title = f.get("System.Title","Sin título")
+        state = f.get("System.State","")
         incidents.append({"id":bug["id"],"title":title,"state":state,"sev":sev,"module":module})
 
     by_sev    = defaultdict(list)
@@ -253,7 +282,7 @@ def _suite_card(suite, prod):
       </div>
     </section>"""
 
-def _incidents_block(inc_data, title="Detalle de incidentes", section_num="4"):
+def _incidents_block(inc_data, section_num="4.1", title="Incidentes detectados durante las pruebas del ciclo", bug_label="Detalle de bugs"):
     if not inc_data or inc_data["total"] == 0:
         return f"""<section style="margin-bottom:20px;background:#fff;border-radius:12px;
                    border:1px solid #EDECEA;padding:16px 20px;">
@@ -263,14 +292,14 @@ def _incidents_block(inc_data, title="Detalle de incidentes", section_num="4"):
     by_sev = inc_data["by_sev"]
 
     sev_pills = "".join(_sev_pill(s, len(by_sev.get(s,[]))) for s in ["Crítico","Alto","Mediano","Bajo"] if by_sev.get(s))
-    sev_pcts  = "  ".join(
-        f'<b>{s}:</b> {round(len(by_sev.get(s,[]))/total*100)}%'
+    sev_pcts  = "  ·  ".join(
+        f'<b>{s}s: {round(len(by_sev.get(s,[]))/total*100)}%</b>'
         for s in ["Crítico","Alto","Mediano","Bajo"] if by_sev.get(s)
     )
 
     # Donut charts
     sev_colors = {"Crítico":"#E24B4A","Alto":"#BA7517","Mediano":"#378ADD","Bajo":"#639922"}
-    chart_id   = f"c{abs(hash(title+str(total)))%99999}"
+    chart_id   = f"c{abs(hash(section_num+str(total)))%99999}"
     sev_labels = [s for s in ["Crítico","Alto","Mediano","Bajo"] if by_sev.get(s)]
     sev_vals   = [len(by_sev[s]) for s in sev_labels]
     sev_cols   = [sev_colors[s] for s in sev_labels]
@@ -278,7 +307,6 @@ def _incidents_block(inc_data, title="Detalle de incidentes", section_num="4"):
     mod_vals   = [sum(inc_data["by_module"][m].values()) for m in mod_labels]
     mod_cols   = ["#7F77DD","#1D9E75","#D85A30","#378ADD","#BA7517","#E24B4A"]
 
-    # Tabla módulos
     mod_rows = "".join(
         f'<tr style="border-top:1px solid #EDECEA;">'
         f'<td style="padding:8px 16px;font-size:13px;color:#3d3d3a;">{mod}</td>'
@@ -288,7 +316,6 @@ def _incidents_block(inc_data, title="Detalle de incidentes", section_num="4"):
         for mod, sv in sorted(inc_data["by_module"].items())
     )
 
-    # Tabla bugs
     bug_rows = "".join(
         f'<tr style="border-top:1px solid #EDECEA;">'
         f'<td style="padding:8px 14px;font-size:12px;color:#888;">#{inc["id"]}</td>'
@@ -304,22 +331,24 @@ def _incidents_block(inc_data, title="Detalle de incidentes", section_num="4"):
 
     return f"""
     <section style="margin-bottom:20px;background:#fff;border-radius:12px;border:1px solid #EDECEA;overflow:hidden;">
-      <div style="padding:13px 20px;border-bottom:1px solid #EDECEA;background:#FAFAF8;">
-        <div style="font-size:10px;font-weight:500;color:#888;text-transform:uppercase;letter-spacing:.06em;">{title}</div>
-        <div style="font-size:13px;color:#3d3d3a;margin-top:4px;">{inc_data.get('uh_title','')}</div>
-        <div style="display:flex;align-items:center;gap:8px;margin-top:8px;flex-wrap:wrap;">
+      <div style="padding:14px 20px;border-bottom:1px solid #EDECEA;background:#FAFAF8;">
+        <div style="font-size:11px;font-weight:600;color:#2B35C1;text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px;">{section_num}</div>
+        <div style="font-size:14px;font-weight:600;color:#1a1a18;margin-bottom:3px;">{title}</div>
+        <div style="font-size:12px;color:#888;">{inc_data.get('uh_title','')} · {total} incidentes en total</div>
+      </div>
+      <div style="padding:10px 20px;border-bottom:1px solid #EDECEA;background:#FAFAF8;">
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:5px;">
           {sev_pills}
-          <span style="font-size:11px;color:#888;">{total} incidentes</span>
         </div>
-        <div style="font-size:12px;color:#888;margin-top:6px;">Porcentaje por criticidad: {sev_pcts}</div>
+        <div style="font-size:12px;color:#888;">Porcentaje por criticidad — {sev_pcts}</div>
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;padding:16px 20px;border-bottom:1px solid #EDECEA;">
         <div style="text-align:center;">
-          <div style="font-size:10px;font-weight:500;color:#888;text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px;">Por criticidad</div>
+          <div style="font-size:10px;font-weight:500;color:#888;text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px;">Porcentaje por criticidad</div>
           <canvas id="{chart_id}_s" width="180" height="180" style="max-width:160px;margin:0 auto;display:block;"></canvas>
         </div>
         <div style="text-align:center;">
-          <div style="font-size:10px;font-weight:500;color:#888;text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px;">Por módulo / funcionalidad</div>
+          <div style="font-size:10px;font-weight:500;color:#888;text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px;">Porcentaje por módulo / funcionalidad</div>
           <canvas id="{chart_id}_m" width="180" height="180" style="max-width:160px;margin:0 auto;display:block;"></canvas>
         </div>
       </div>
@@ -330,7 +359,7 @@ def _incidents_block(inc_data, title="Detalle de incidentes", section_num="4"):
         new Chart(document.getElementById('{chart_id}_m'),{{type:'doughnut',data:{{labels:{mod_labels},datasets:[{{data:{mod_vals},backgroundColor:{mod_cols},borderWidth:2,borderColor:'#fff'}}]}},options:{{plugins:{{legend:{{position:'bottom',labels:{{font:{{size:11}},padding:6}}}}}},cutout:'65%',animation:false}}}});
       }})();
       </script>
-      <div style="padding:12px 20px 4px;font-size:10px;font-weight:500;color:#888;text-transform:uppercase;letter-spacing:.05em;">Porcentaje de incidencias por módulo / funcionalidad</div>
+      <div style="padding:12px 20px 4px;font-size:10px;font-weight:500;color:#888;text-transform:uppercase;letter-spacing:.05em;">Porcentaje de incidencias detectadas por módulo / funcionalidad</div>
       <table style="width:100%;border-collapse:collapse;margin-bottom:8px;">
         <thead><tr style="background:#F5F4F0;">
           <th style="padding:7px 16px;text-align:left;font-size:10px;font-weight:500;color:#888;text-transform:uppercase;">Módulo</th>
@@ -339,7 +368,7 @@ def _incidents_block(inc_data, title="Detalle de incidentes", section_num="4"):
         </tr></thead>
         <tbody>{mod_rows}</tbody>
       </table>
-      <div style="padding:12px 20px 4px;font-size:10px;font-weight:500;color:#888;text-transform:uppercase;letter-spacing:.05em;">Detalle de bugs</div>
+      <div style="padding:12px 20px 4px;font-size:10px;font-weight:500;color:#888;text-transform:uppercase;letter-spacing:.05em;">{bug_label}</div>
       <table style="width:100%;border-collapse:collapse;">
         <thead><tr style="background:#F5F4F0;">
           <th style="padding:7px 14px;text-align:left;font-size:10px;font-weight:500;color:#888;text-transform:uppercase;">#</th>
@@ -394,8 +423,10 @@ def generate_report_html(form):
     ff_plan = form.get("fecha_fin_plan","")
     fi_real = form.get("fecha_inicio_real","")
     ff_real = form.get("fecha_fin_real","")
-    alcance = [a.strip() for a in form.getlist("alcance") if a.strip()]
-    resps   = [r.strip() for r in form.getlist("responsables") if r.strip()]
+    alcance      = [a.strip() for a in form.getlist("alcance") if a.strip()]
+    resps        = [r.strip() for r in form.getlist("responsables") if r.strip()]
+    riesgos      = form.get("riesgos","").strip() or "N/A"
+    observaciones= form.get("observaciones","").strip() or "N/A"
 
     # Múltiples Test Plans
     plan_ids_raw = [p.strip() for p in form.getlist("plan_ids") if p.strip().isdigit()]
@@ -456,15 +487,19 @@ def generate_report_html(form):
           </div></div>'''
         suite_cards += "".join(_suite_card(s, prod) for s in pd["suites"])
 
-    # Sección 4 — Incidentes del ciclo actual
-    inc_section = _incidents_block(inc_data, "Incidentes detectados durante las pruebas del ciclo")
+    # Sección 4.1 — Incidentes del ciclo actual
+    inc_section = _incidents_block(
+        inc_data,
+        section_num="4.1",
+        title=f"Incidentes detectados durante las pruebas del ciclo {ciclo} — Versión {version} de SALUS Web",
+        bug_label="Detalle de bugs detectados"
+    )
 
     # Sección 4.2 / 4.3 — Ciclo anterior: corregidos y pendientes
     prev_sections = ""
     if prev_data and prev_data["total"] > 0:
-        # Separar resueltos vs pendientes
-        resueltos = [i for i in prev_data["incidents"] if i["state"].lower() in ("closed","resolved","done","cerrado","resuelto")]
-        pendientes= [i for i in prev_data["incidents"] if i["state"].lower() not in ("closed","resolved","done","cerrado","resuelto")]
+        resueltos  = [i for i in prev_data["incidents"] if i["state"].lower() in ("closed","resolved","done","cerrado","resuelto")]
+        pendientes = [i for i in prev_data["incidents"] if i["state"].lower() not in ("closed","resolved","done","cerrado","resuelto")]
 
         if resueltos:
             prev_res = dict(prev_data)
@@ -477,8 +512,12 @@ def generate_report_html(form):
                 by_mod_r[i["module"]][i["sev"]] += 1
             prev_res["by_sev"] = dict(by_sev_r)
             prev_res["by_module"] = {m:dict(v) for m,v in by_mod_r.items()}
-            prev_sections += f'<div style="margin-bottom:8px;"><h2>4.2 · Paquete de incidentes corregidas — ciclo anterior</h2></div>'
-            prev_sections += _incidents_block(prev_res, "Incidencias corregidas del ciclo anterior")
+            prev_sections += _incidents_block(
+                prev_res,
+                section_num="4.2",
+                title=f"Paquete de incidentes corregidas — Versión anterior (Ciclo {ciclo} MVP 2) de SALUS Web",
+                bug_label="Detalle de bugs corregidos"
+            )
 
         if pendientes:
             prev_pend = dict(prev_data)
@@ -491,8 +530,12 @@ def generate_report_html(form):
                 by_mod_p[i["module"]][i["sev"]] += 1
             prev_pend["by_sev"] = dict(by_sev_p)
             prev_pend["by_module"] = {m:dict(v) for m,v in by_mod_p.items()}
-            prev_sections += f'<div style="margin-bottom:8px;"><h2>4.3 · Incidencias pendientes de corrección — ciclo anterior</h2></div>'
-            prev_sections += _incidents_block(prev_pend, "Incidencias pendientes del ciclo anterior")
+            prev_sections += _incidents_block(
+                prev_pend,
+                section_num="4.3",
+                title=f"Incidencias pendientes de corrección de la Versión anterior (Ciclo {ciclo} MVP 2) de SALUS Web",
+                bug_label="Detalle de bugs pendientes"
+            )
 
     html = f"""<!DOCTYPE html>
 <html lang="es">
@@ -596,17 +639,20 @@ def generate_report_html(form):
   {suite_cards}
 
   <!-- 4. Incidentes -->
-  <div style="margin-bottom:12px;"><h2>4 · Detalle de incidentes</h2></div>
+  <div style="background:#fff;border-radius:12px;border:1px solid #EDECEA;padding:14px 20px;margin-bottom:12px;">
+    <h2 style="margin:0;">4 · Detalle de incidentes</h2>
+    <div style="font-size:13px;color:#888;margin-top:6px;">Durante las pruebas se detectaron los siguientes incidentes, agrupados según su nivel de criticidad.</div>
+  </div>
   {inc_section}
   {prev_sections}
 
   <!-- 5. Riesgos -->
   <div style="background:#fff;border-radius:12px;border:1px solid #EDECEA;padding:16px 20px;margin-bottom:16px;">
     <h2>5 · Detalle de riesgos detectados</h2>
-    <div style="font-size:13px;color:#888;">N/A</div>
+    <div style="font-size:13px;color:#3d3d3a;">{riesgos}</div>
     <div style="margin-top:12px;">
       <div style="font-size:11px;font-weight:500;color:#888;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px;">Observaciones</div>
-      <div style="font-size:13px;color:#888;">N/A</div>
+      <div style="font-size:13px;color:#3d3d3a;">{observaciones}</div>
     </div>
   </div>
 
