@@ -440,14 +440,14 @@ def _incidents_block(inc_data, section_num="4.1", title="Incidentes detectados d
         </div>
         <div style="font-size:12px;color:#888;">Cantidad por criticidad — {sev_counts_line}</div>
       </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;padding:16px 20px;border-bottom:1px solid #EDECEA;">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;padding:24px 20px;border-bottom:1px solid #EDECEA;">
         <div style="text-align:center;">
-          <div style="font-size:10px;font-weight:500;color:#888;text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px;">Porcentaje por criticidad</div>
-          <canvas id="{chart_id}_s" width="180" height="180" style="max-width:160px;margin:0 auto;display:block;"></canvas>
+          <div style="font-size:11px;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:.06em;margin-bottom:16px;">Por criticidad</div>
+          <canvas id="{chart_id}_s" width="320" height="320" style="max-width:320px;margin:0 auto;display:block;"></canvas>
         </div>
         <div style="text-align:center;">
-          <div style="font-size:10px;font-weight:500;color:#888;text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px;">Porcentaje por módulo / funcionalidad</div>
-          <canvas id="{chart_id}_m" width="180" height="180" style="max-width:160px;margin:0 auto;display:block;"></canvas>
+          <div style="font-size:11px;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:.06em;margin-bottom:16px;">Por módulo / funcionalidad</div>
+          <canvas id="{chart_id}_m" width="320" height="320" style="max-width:320px;margin:0 auto;display:block;"></canvas>
         </div>
       </div>
       <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
@@ -455,9 +455,10 @@ def _incidents_block(inc_data, section_num="4.1", title="Incidentes detectados d
       <script>
       (function(){{
         Chart.register(ChartDataLabels);
-        var pctPlugin = {{formatter:function(v,ctx){{var sum=ctx.chart.data.datasets[0].data.reduce(function(a,b){{return a+b}},0);var p=Math.round(v/sum*100);return p+'%';}},color:'#333',font:{{weight:'bold',size:11}},anchor:'center',align:'center'}};
-        new Chart(document.getElementById('{chart_id}_s'),{{type:'doughnut',data:{{labels:{sev_labels},datasets:[{{data:{sev_vals},backgroundColor:{sev_cols},borderWidth:2,borderColor:'#fff'}}]}},options:{{plugins:{{datalabels:pctPlugin,legend:{{position:'bottom',labels:{{font:{{size:11}},padding:6}}}}}},cutout:'55%',animation:false}}}});
-        new Chart(document.getElementById('{chart_id}_m'),{{type:'doughnut',data:{{labels:{mod_labels},datasets:[{{data:{mod_vals},backgroundColor:{mod_cols},borderWidth:2,borderColor:'#fff'}}]}},options:{{plugins:{{datalabels:pctPlugin,legend:{{position:'bottom',labels:{{font:{{size:11}},padding:6}}}}}},cutout:'55%',animation:false}}}});
+        var pctFmt = {{formatter:function(v,ctx){{var sum=ctx.chart.data.datasets[0].data.reduce(function(a,b){{return a+b}},0);var p=Math.round(v/sum*100);return p>=8?p+'%':'';}},color:'#fff',font:{{weight:'bold',size:13}},anchor:'center',align:'center',textShadowBlur:4,textShadowColor:'rgba(0,0,0,.35)'}};
+        var legOpts = {{position:'bottom',labels:{{font:{{size:12,weight:'500'}},padding:14,usePointStyle:true,pointStyle:'rectRounded',boxWidth:14,boxHeight:10}}}};
+        new Chart(document.getElementById('{chart_id}_s'),{{type:'doughnut',data:{{labels:{sev_labels},datasets:[{{data:{sev_vals},backgroundColor:{sev_cols},borderWidth:3,borderColor:'#fff',hoverBorderWidth:4,hoverOffset:6}}]}},options:{{responsive:true,maintainAspectRatio:true,plugins:{{datalabels:pctFmt,legend:legOpts}},cutout:'60%',animation:{{animateRotate:true,duration:600}}}}}});
+        new Chart(document.getElementById('{chart_id}_m'),{{type:'doughnut',data:{{labels:{mod_labels},datasets:[{{data:{mod_vals},backgroundColor:{mod_cols},borderWidth:3,borderColor:'#fff',hoverBorderWidth:4,hoverOffset:6}}]}},options:{{responsive:true,maintainAspectRatio:true,plugins:{{datalabels:pctFmt,legend:legOpts}},cutout:'60%',animation:{{animateRotate:true,duration:600}}}}}});
       }})();
       </script>
       <div style="padding:12px 20px 4px;font-size:10px;font-weight:500;color:#888;text-transform:uppercase;letter-spacing:.05em;">Porcentaje de incidencias detectadas por módulo / funcionalidad</div>
