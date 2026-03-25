@@ -246,17 +246,37 @@
           + Agregar Test Plan
         </button>
         <div class="divider"></div>
-        <div class="grid-2">
+        <div class="grid-2" style="margin-bottom:14px;">
           <div class="field">
-            <label>ID UH incidentes — ciclo actual</label>
-            <input type="number" name="uh_id" placeholder="ej: 90424">
-            <span class="hint">Work item con los bugs del ciclo actual</span>
+            <label>ID UH de alcance</label>
+            <input type="number" name="alcance_uh_id" placeholder="ej: 90424">
+            <span class="hint">UH con los bugs/tasks del alcance de la versión (se muestra en sección 1)</span>
           </div>
           <div class="field">
-            <label>ID UH ciclo anterior <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:10px;">(opcional)</span></label>
-            <input type="number" name="prev_uh_id" placeholder="ej: 88300">
-            <span class="hint">Para mostrar incidencias del ciclo previo</span>
+            <label>ID Feature — incidentes ciclo actual</label>
+            <input type="number" name="uh_id" placeholder="ej: 90425">
+            <span class="hint">Feature/UH con los bugs detectados en este ciclo</span>
           </div>
+        </div>
+        <div class="field">
+          <label>ID Feature — ciclo anterior <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:10px;">(opcional)</span></label>
+          <input type="number" name="prev_uh_id" placeholder="ej: 88300">
+          <span class="hint">Feature del ciclo previo para comparar corregidos vs pendientes</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 4. Observaciones -->
+    <div class="section">
+      <div class="section-header"><span class="section-num">4</span><span class="section-title">Riesgos y observaciones</span></div>
+      <div class="section-body">
+        <div class="field" style="margin-bottom:14px;">
+          <label>Riesgos detectados</label>
+          <input type="text" name="riesgos" placeholder="ej: Inestabilidad en el ambiente de integración (dejá vacío para N/A)">
+        </div>
+        <div class="field">
+          <label>Observaciones</label>
+          <textarea name="observaciones" placeholder="Observaciones generales del ciclo (dejá vacío para N/A)" style="min-height:80px;"></textarea>
         </div>
       </div>
     </div>

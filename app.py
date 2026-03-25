@@ -234,6 +234,39 @@ def build_incident_data(uh_id):
         "by_module": {m:dict(v) for m,v in by_module.items()},
     }
 
+def build_alcance_data(uh_id):
+    """Trae los hijos directos de la UH de alcance separados en Bugs y Tasks."""
+    if not uh_id:
+        return {"total":0,"uh_title":"","bugs":[],"tasks":[]}
+    uh = get_work_item(uh_id)
+    if "_error" in uh:
+        return {"total":0,"uh_title":f"Error UH {uh_id}","bugs":[],"tasks":[]}
+
+    uh_title  = uh.get("fields",{}).get("System.Title", f"UH #{uh_id}")
+    children  = get_work_item_children(uh_id)
+
+    bugs  = []
+    tasks = []
+    for child in children:
+        f      = child.get("fields",{})
+        wi_type= f.get("System.WorkItemType","")
+        title  = f.get("System.Title","Sin título")
+        state  = f.get("System.State","")
+        wi_id  = child["id"]
+        item   = {"id": wi_id, "title": title, "state": state}
+        if wi_type == "Bug":
+            bugs.append(item)
+        elif wi_type in ("Task","User Story","Feature"):
+            tasks.append(item)
+
+    return {
+        "uh_id":   uh_id,
+        "uh_title": uh_title,
+        "total":   len(bugs) + len(tasks),
+        "bugs":    bugs,
+        "tasks":   tasks,
+    }
+
 # ── HTML blocks ────────────────────────────────────────────────
 def _suite_card(suite, prod):
     """Cada suite se muestra como una tarjeta independiente al estilo del reporte del equipo."""
@@ -282,6 +315,69 @@ def _suite_card(suite, prod):
       </div>
     </section>"""
 
+def _alcance_block(alcance_data):
+    """Sección 1 — muestra bugs y tasks del alcance separados."""
+    if not alcance_data or alcance_data["total"] == 0:
+        return ""
+
+    def state_pill(state):
+        closed = state.lower() in ("closed","resolved","done","cerrado","resuelto")
+        style  = "background:#EAF3DE;color:#3B6D11;" if closed else "background:#F1EFE8;color:#5F5E5A;"
+        return f'<span style="font-size:11px;font-weight:500;padding:2px 8px;border-radius:20px;{style}">{state}</span>'
+
+    bug_rows = "".join(
+        f'<tr style="border-top:1px solid #EDECEA;">'
+        f'<td style="padding:7px 14px;font-size:12px;color:#888;">#{item["id"]}</td>'
+        f'<td style="padding:7px 14px;font-size:13px;color:#3d3d3a;">{item["title"]}</td>'
+        f'<td style="padding:7px 10px;text-align:center;">{state_pill(item["state"])}</td>'
+        f'</tr>'
+        for item in alcance_data["bugs"]
+    )
+
+    task_rows = "".join(
+        f'<tr style="border-top:1px solid #EDECEA;">'
+        f'<td style="padding:7px 14px;font-size:12px;color:#888;">#{item["id"]}</td>'
+        f'<td style="padding:7px 14px;font-size:13px;color:#3d3d3a;">{item["title"]}</td>'
+        f'<td style="padding:7px 10px;text-align:center;">{state_pill(item["state"])}</td>'
+        f'</tr>'
+        for item in alcance_data["tasks"]
+    )
+
+    bugs_section = f"""
+      <div style="padding:10px 20px 4px;font-size:10px;font-weight:500;color:#888;text-transform:uppercase;letter-spacing:.05em;">
+        Errores / Bugs <span style="font-weight:400;color:#aaa;">({len(alcance_data["bugs"])})</span>
+      </div>
+      <table style="width:100%;border-collapse:collapse;margin-bottom:8px;">
+        <thead><tr style="background:#F5F4F0;">
+          <th style="padding:7px 14px;text-align:left;font-size:10px;font-weight:500;color:#888;text-transform:uppercase;">#</th>
+          <th style="padding:7px 14px;text-align:left;font-size:10px;font-weight:500;color:#888;text-transform:uppercase;">Título</th>
+          <th style="padding:7px 10px;text-align:center;font-size:10px;font-weight:500;color:#888;text-transform:uppercase;">Estado</th>
+        </tr></thead>
+        <tbody>{bug_rows}</tbody>
+      </table>""" if alcance_data["bugs"] else ""
+
+    tasks_section = f"""
+      <div style="padding:10px 20px 4px;font-size:10px;font-weight:500;color:#888;text-transform:uppercase;letter-spacing:.05em;">
+        Nuevas funcionalidades / Implementaciones <span style="font-weight:400;color:#aaa;">({len(alcance_data["tasks"])})</span>
+      </div>
+      <table style="width:100%;border-collapse:collapse;">
+        <thead><tr style="background:#F5F4F0;">
+          <th style="padding:7px 14px;text-align:left;font-size:10px;font-weight:500;color:#888;text-transform:uppercase;">#</th>
+          <th style="padding:7px 14px;text-align:left;font-size:10px;font-weight:500;color:#888;text-transform:uppercase;">Título</th>
+          <th style="padding:7px 10px;text-align:center;font-size:10px;font-weight:500;color:#888;text-transform:uppercase;">Estado</th>
+        </tr></thead>
+        <tbody>{task_rows}</tbody>
+      </table>""" if alcance_data["tasks"] else ""
+
+    return f"""
+    <div style="margin-top:14px;padding-top:14px;border-top:1px solid #EDECEA;">
+      <div style="font-size:11px;font-weight:500;color:#888;text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px;">
+        Ítems del alcance — {alcance_data["uh_title"]}
+      </div>
+      {bugs_section}
+      {tasks_section}
+    </div>"""
+
 def _incidents_block(inc_data, section_num="4.1", title="Incidentes detectados durante las pruebas del ciclo", bug_label="Detalle de bugs"):
     if not inc_data or inc_data["total"] == 0:
         return f"""<section style="margin-bottom:20px;background:#fff;border-radius:12px;
@@ -292,8 +388,9 @@ def _incidents_block(inc_data, section_num="4.1", title="Incidentes detectados d
     by_sev = inc_data["by_sev"]
 
     sev_pills = "".join(_sev_pill(s, len(by_sev.get(s,[]))) for s in ["Crítico","Alto","Mediano","Bajo"] if by_sev.get(s))
-    sev_pcts  = "  ·  ".join(
-        f'<b>{s}s: {round(len(by_sev.get(s,[]))/total*100)}%</b>'
+    # Mostrar cantidad absoluta por criticidad (no %)
+    sev_counts_line = "  ·  ".join(
+        f'<b>{s}s: {len(by_sev.get(s,[]))}</b>'
         for s in ["Crítico","Alto","Mediano","Bajo"] if by_sev.get(s)
     )
 
@@ -311,6 +408,7 @@ def _incidents_block(inc_data, section_num="4.1", title="Incidentes detectados d
         f'<tr style="border-top:1px solid #EDECEA;">'
         f'<td style="padding:8px 16px;font-size:13px;color:#3d3d3a;">{mod}</td>'
         f'<td style="padding:8px 8px;text-align:center;font-size:13px;color:#888;">{sum(sv.values())}</td>'
+        f'<td style="padding:8px 8px;text-align:center;font-size:13px;font-weight:600;color:#2B35C1;">{pct(sum(sv.values()), total)}%</td>'
         f'<td style="padding:8px 14px;">{"".join(_sev_pill(s,sv.get(s,0)) for s in ["Crítico","Alto","Mediano","Bajo"] if sv.get(s,0))}</td>'
         f'</tr>'
         for mod, sv in sorted(inc_data["by_module"].items())
@@ -340,7 +438,7 @@ def _incidents_block(inc_data, section_num="4.1", title="Incidentes detectados d
         <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:5px;">
           {sev_pills}
         </div>
-        <div style="font-size:12px;color:#888;">Porcentaje por criticidad — {sev_pcts}</div>
+        <div style="font-size:12px;color:#888;">Cantidad por criticidad — {sev_counts_line}</div>
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;padding:16px 20px;border-bottom:1px solid #EDECEA;">
         <div style="text-align:center;">
@@ -353,10 +451,13 @@ def _incidents_block(inc_data, section_num="4.1", title="Incidentes detectados d
         </div>
       </div>
       <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-datalabels/2.2.0/chartjs-plugin-datalabels.min.js"></script>
       <script>
       (function(){{
-        new Chart(document.getElementById('{chart_id}_s'),{{type:'doughnut',data:{{labels:{sev_labels},datasets:[{{data:{sev_vals},backgroundColor:{sev_cols},borderWidth:2,borderColor:'#fff'}}]}},options:{{plugins:{{legend:{{position:'bottom',labels:{{font:{{size:11}},padding:6}}}}}},cutout:'65%',animation:false}}}});
-        new Chart(document.getElementById('{chart_id}_m'),{{type:'doughnut',data:{{labels:{mod_labels},datasets:[{{data:{mod_vals},backgroundColor:{mod_cols},borderWidth:2,borderColor:'#fff'}}]}},options:{{plugins:{{legend:{{position:'bottom',labels:{{font:{{size:11}},padding:6}}}}}},cutout:'65%',animation:false}}}});
+        Chart.register(ChartDataLabels);
+        var pctPlugin = {{formatter:function(v,ctx){{var sum=ctx.chart.data.datasets[0].data.reduce(function(a,b){{return a+b}},0);var p=Math.round(v/sum*100);return p+'%';}},color:'#333',font:{{weight:'bold',size:11}},anchor:'center',align:'center'}};
+        new Chart(document.getElementById('{chart_id}_s'),{{type:'doughnut',data:{{labels:{sev_labels},datasets:[{{data:{sev_vals},backgroundColor:{sev_cols},borderWidth:2,borderColor:'#fff'}}]}},options:{{plugins:{{datalabels:pctPlugin,legend:{{position:'bottom',labels:{{font:{{size:11}},padding:6}}}}}},cutout:'55%',animation:false}}}});
+        new Chart(document.getElementById('{chart_id}_m'),{{type:'doughnut',data:{{labels:{mod_labels},datasets:[{{data:{mod_vals},backgroundColor:{mod_cols},borderWidth:2,borderColor:'#fff'}}]}},options:{{plugins:{{datalabels:pctPlugin,legend:{{position:'bottom',labels:{{font:{{size:11}},padding:6}}}}}},cutout:'55%',animation:false}}}});
       }})();
       </script>
       <div style="padding:12px 20px 4px;font-size:10px;font-weight:500;color:#888;text-transform:uppercase;letter-spacing:.05em;">Porcentaje de incidencias detectadas por módulo / funcionalidad</div>
@@ -364,11 +465,16 @@ def _incidents_block(inc_data, section_num="4.1", title="Incidentes detectados d
         <thead><tr style="background:#F5F4F0;">
           <th style="padding:7px 16px;text-align:left;font-size:10px;font-weight:500;color:#888;text-transform:uppercase;">Módulo</th>
           <th style="padding:7px 8px;text-align:center;font-size:10px;font-weight:500;color:#888;text-transform:uppercase;">Total</th>
+          <th style="padding:7px 8px;text-align:center;font-size:10px;font-weight:500;color:#888;text-transform:uppercase;">% del total</th>
           <th style="padding:7px 14px;text-align:left;font-size:10px;font-weight:500;color:#888;text-transform:uppercase;">Desglose</th>
         </tr></thead>
         <tbody>{mod_rows}</tbody>
       </table>
-      <div style="padding:12px 20px 4px;font-size:10px;font-weight:500;color:#888;text-transform:uppercase;letter-spacing:.05em;">{bug_label}</div>
+      <div style="padding:12px 20px 4px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;"
+           onclick="var tbl=this.nextElementSibling;var arrow=this.querySelector('.toggle-arrow');if(tbl.style.display==='none'){{tbl.style.display='table';arrow.style.transform='rotate(0deg)';}}else{{tbl.style.display='none';arrow.style.transform='rotate(-90deg)';}}">
+        <span style="font-size:10px;font-weight:500;color:#888;text-transform:uppercase;letter-spacing:.05em;">{bug_label} ({len(inc_data['incidents'])})</span>
+        <span class="toggle-arrow" style="font-size:14px;color:#888;transition:transform .2s;display:inline-block;">▼</span>
+      </div>
       <table style="width:100%;border-collapse:collapse;">
         <thead><tr style="background:#F5F4F0;">
           <th style="padding:7px 14px;text-align:left;font-size:10px;font-weight:500;color:#888;text-transform:uppercase;">#</th>
@@ -429,6 +535,7 @@ def generate_report_html(form):
     observaciones= form.get("observaciones","").strip() or "N/A"
 
     # Múltiples Test Plans
+    alcance_id   = int(form.get("alcance_uh_id", 0)) if form.get("alcance_uh_id","").strip().isdigit() else None
     plan_ids_raw = [p.strip() for p in form.getlist("plan_ids") if p.strip().isdigit()]
     if not plan_ids_raw:
         return None, "No se ingresaron IDs de Test Plans válidos."
@@ -443,6 +550,7 @@ def generate_report_html(form):
     uh_id   = int(form.get("uh_id", 0)) if form.get("uh_id","").strip().isdigit() else None
     prev_id = int(form.get("prev_uh_id", 0)) if form.get("prev_uh_id","").strip().isdigit() else None
 
+    alcance_data = build_alcance_data(alcance_id) if alcance_id else None
     inc_data  = build_incident_data(uh_id)
     prev_data = build_incident_data(prev_id) if prev_id else None
 
@@ -467,14 +575,28 @@ def generate_report_html(form):
     for pd in plans_data:
         for s in pd["suites"]:
             t = s["total"]; c_s = s["counts"]
-            ep = pct(c_s.get("passed",0), t)
-            ip = pct(c_s.get("failed",0)+c_s.get("blocked",0), t)
-            res_txt = f"Exitoso ({c_s.get('passed',0)} de {t})" if c_s.get("failed",0)+c_s.get("blocked",0) == 0 else f"Fallido — Exitosos: {c_s.get('passed',0)} ({ep}%) / Con incidencia: {c_s.get('failed',0)+c_s.get('blocked',0)} ({ip}%)"
+            fail_cnt  = c_s.get("failed",0) + c_s.get("blocked",0)
+            pass_cnt  = c_s.get("passed",0)
+            ip = pct(fail_cnt, t)
+            # Etiqueta descriptiva estandarizada
+            if fail_cnt == 0:
+                res_txt   = "Exitoso"
+                res_style = "background:#EAF3DE;color:#3B6D11;"
+            elif ip <= 10:
+                res_txt   = "Exitoso con incidentes menores"
+                res_style = "background:#FAEEDA;color:#633806;"
+            elif ip <= 30:
+                res_txt   = "Con incidencias moderadas"
+                res_style = "background:#E6F1FB;color:#185FA5;"
+            else:
+                res_txt   = "Con incidencias críticas"
+                res_style = "background:#FCEBEB;color:#791F1F;"
+            res_pill = f'<span style="font-size:11px;font-weight:500;padding:2px 10px;border-radius:20px;{res_style}">{res_txt}</span>'
             det_rows += (f'<tr style="border-top:1px solid #EDECEA;">'
                          f'<td style="padding:8px 20px;font-size:13px;color:#888;">{prod} / {pd["name"]}</td>'
                          f'<td style="padding:8px 14px;font-size:13px;color:#3d3d3a;">{s["name"]}</td>'
                          f'<td style="padding:8px 14px;font-size:13px;color:#888;">Funcional</td>'
-                         f'<td style="padding:8px 14px;font-size:13px;color:#3d3d3a;">{res_txt}</td>'
+                         f'<td style="padding:8px 14px;font-size:13px;color:#3d3d3a;">{res_pill}</td>'
                          f'</tr>')
 
     # Sección 3 — Suites agrupadas por plan
@@ -594,6 +716,7 @@ def generate_report_html(form):
     <h2>1 · Especificaciones</h2>
     <div style="font-size:11px;font-weight:500;color:#888;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;">Alcance {version}</div>
     <ul style="padding-left:18px;">{alc_li}</ul>
+    {_alcance_block(alcance_data) if alcance_data else ""}
   </div>
 
   <!-- 2. Detalle de pruebas -->
