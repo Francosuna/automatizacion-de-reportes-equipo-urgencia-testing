@@ -505,11 +505,11 @@ def _incidents_block(inc_data, section_num="4.1", title="Incidentes detectados d
                   background:#FAFAF8;border-top:1px solid #EDECEA;border-bottom:1px solid #EDECEA;
                   margin-top:6px;transition:background .15s;"
            onmouseover="this.style.background='#F1F0EC'" onmouseout="this.style.background='#FAFAF8'"
-           onclick="var tbl=this.nextElementSibling;var arrow=this.querySelector('.toggle-arrow');if(tbl.style.display==='none'){{tbl.style.display='table';arrow.innerHTML='&#9654;';}}else{{tbl.style.display='none';arrow.innerHTML='&#9654;';}}">
+           onclick="var tbl=this.closest('section').querySelector('.inc-table'); var arrow=this.querySelector('.toggle-arrow'); if(tbl.style.display==='none'){{ tbl.style.display='table'; arrow.style.transform='rotate(90deg)'; }} else {{ tbl.style.display='none'; arrow.style.transform='rotate(0deg)'; }}">
         <span style="font-size:12px;font-weight:600;color:#5F5E5A;text-transform:uppercase;letter-spacing:.06em;">{bug_label} ({len(inc_data['incidents'])})</span>
-        <span class="toggle-arrow" style="font-size:12px;color:#888;transition:transform .2s;display:inline-block;">&#9654;</span>
+        <span class="toggle-arrow" style="font-size:12px;color:#888;transition:transform .2s;display:inline-block;transform:rotate(90deg);">&#9654;</span>
       </div>
-      <table style="width:100%;border-collapse:collapse;">
+      <table class="inc-table" style="width:100%;border-collapse:collapse;display:table;">
         <thead><tr style="background:#F5F4F0;">
           <th style="padding:7px 14px;text-align:left;font-size:10px;font-weight:500;color:#888;text-transform:uppercase;">#</th>
           <th style="padding:7px 14px;text-align:left;font-size:10px;font-weight:500;color:#888;text-transform:uppercase;">Título</th>
@@ -654,7 +654,7 @@ def generate_report_html(form, demo_data=None):
             else:
                 res_txt   = "Con incidencias críticas"
                 res_style = "background:#FCEBEB;color:#791F1F;"
-            res_pill = f'<span style="font-size:11px;font-weight:500;padding:2px 10px;border-radius:20px;{res_style}">{res_txt}</span>'
+            res_pill = f'<span style="font-size:11px;font-weight:600;padding:2px 10px;border-radius:20px;white-space:nowrap;{res_style}">{res_txt}</span>'
             det_rows += (f'<tr style="border-top:1px solid #EDECEA;">'
                          f'<td style="padding:8px 20px;font-size:13px;color:#888;">{prod} / {pd["name"]}</td>'
                          f'<td style="padding:8px 14px;font-size:13px;color:#3d3d3a;">{s["name"]}</td>'
