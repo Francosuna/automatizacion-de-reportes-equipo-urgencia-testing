@@ -67,15 +67,26 @@ SEVERITY_LABELS = {
     "mediano":"Mediano","medium":"Mediano","3 - medium":"Mediano",
     "bajo":"Bajo","low":"Bajo","4 - low":"Bajo",
 }
+# ── Color Palette & Styles ──────────────────────────────────────
+# Theme Colors
+# Theme Colors
+PRIMARY_COLOR   = "#061E29" # Navy
+SECONDARY_COLOR = "#1D546D" # Steel Blue
+ACCENT_COLOR    = "#5F9598" # Sage Blue
+BG_COLOR        = "#F3F4F4" # Light Gray
+
 SEVERITY_STYLE = {
-    "Crítico":{"bg":"#FCEBEB","color":"#791F1F"},
-    "Alto":   {"bg":"#FAEEDA","color":"#633806"},
-    "Mediano":{"bg":"#E6F1FB","color":"#185FA5"},
-    "Bajo":   {"bg":"#EAF3DE","color":"#3B6D11"},
+    "Crítico":{"bg":"#FCEBEB","color":"#791F1F"}, # Red
+    "Alto":   {"bg":"#FAEEDA","color":"#633806"}, # Orange
+    "Mediano":{"bg":"#FFF9C4","color":"#6B5900"}, # Yellow
+    "Bajo":   {"bg":"#EAF3DE","color":"#3B6D11"}, # Green
 }
 STATUS_COLORS = {
-    "passed":"#639922","failed":"#E24B4A",
-    "blocked":"#BA7517","notrun":"#D3D1C7","active":"#378ADD",
+    "passed":"#5F9598",
+    "failed":"#E24B4A",
+    "blocked":"#BA7517",
+    "notrun":"#d1d1d1",
+    "active":"#1D546D",
 }
 
 def _norm_sev(raw):
@@ -99,7 +110,7 @@ def _pill(label, count, style):
 def _sev_pill(sev, count=None):
     st = SEVERITY_STYLE.get(sev, {"bg":"#F1EFE8","color":"#5F5E5A"})
     txt = f"{sev}{f' <b>{count}</b>' if count else ''}"
-    return (f'<span style="font-size:11px;font-weight:500;padding:2px 8px;border-radius:20px;'
+    return (f'<span style="font-size:12px;font-weight:600;padding:2px 10px;border-radius:20px;'
             f'background:{st["bg"]};color:{st["color"]};white-space:nowrap;">{txt}</span> ')
 
 def _bar(counts, total):
@@ -316,66 +327,66 @@ def _suite_card(suite, prod):
     </section>"""
 
 def _alcance_block(alcance_data):
-    """Sección 1 — muestra bugs y tasks del alcance separados."""
+    """Sección 1 — muestra bugs y tasks del alcance en un formato desplegable."""
     if not alcance_data or alcance_data["total"] == 0:
         return ""
 
     def state_pill(state):
         closed = state.lower() in ("closed","resolved","done","cerrado","resuelto")
-        style  = "background:#EAF3DE;color:#3B6D11;" if closed else "background:#F1EFE8;color:#5F5E5A;"
-        return f'<span style="font-size:11px;font-weight:500;padding:2px 8px;border-radius:20px;{style}">{state}</span>'
+        style  = f"background:#EAF3DE;color:#3B6D11;" if closed else "background:#E6EBEF;color:#1D546D;"
+        return f'<span style="font-size:11px;font-weight:600;padding:2px 10px;border-radius:20px;{style}">{state}</span>'
 
     bug_rows = "".join(
         f'<tr style="border-top:1px solid #EDECEA;">'
-        f'<td style="padding:7px 14px;font-size:12px;color:#888;">#{item["id"]}</td>'
-        f'<td style="padding:7px 14px;font-size:13px;color:#3d3d3a;">{item["title"]}</td>'
-        f'<td style="padding:7px 10px;text-align:center;">{state_pill(item["state"])}</td>'
+        f'<td style="padding:10px 14px;font-size:12px;color:#888;">#{item["id"]}</td>'
+        f'<td style="padding:10px 14px;font-size:13px;color:#3d3d3a;">{item["title"]}</td>'
+        f'<td style="padding:10px 10px;text-align:center;">{state_pill(item["state"])}</td>'
         f'</tr>'
         for item in alcance_data["bugs"]
     )
 
     task_rows = "".join(
         f'<tr style="border-top:1px solid #EDECEA;">'
-        f'<td style="padding:7px 14px;font-size:12px;color:#888;">#{item["id"]}</td>'
-        f'<td style="padding:7px 14px;font-size:13px;color:#3d3d3a;">{item["title"]}</td>'
-        f'<td style="padding:7px 10px;text-align:center;">{state_pill(item["state"])}</td>'
+        f'<td style="padding:10px 14px;font-size:12px;color:#888;">#{item["id"]}</td>'
+        f'<td style="padding:10px 14px;font-size:13px;color:#3d3d3a;">{item["title"]}</td>'
+        f'<td style="padding:10px 10px;text-align:center;">{state_pill(item["state"])}</td>'
         f'</tr>'
         for item in alcance_data["tasks"]
     )
 
-    bugs_section = f"""
-      <div style="padding:10px 20px 4px;font-size:10px;font-weight:500;color:#888;text-transform:uppercase;letter-spacing:.05em;">
-        Errores / Bugs <span style="font-weight:400;color:#aaa;">({len(alcance_data["bugs"])})</span>
-      </div>
-      <table style="width:100%;border-collapse:collapse;margin-bottom:8px;">
-        <thead><tr style="background:#F5F4F0;">
-          <th style="padding:7px 14px;text-align:left;font-size:10px;font-weight:500;color:#888;text-transform:uppercase;">#</th>
-          <th style="padding:7px 14px;text-align:left;font-size:10px;font-weight:500;color:#888;text-transform:uppercase;">Título</th>
-          <th style="padding:7px 10px;text-align:center;font-size:10px;font-weight:500;color:#888;text-transform:uppercase;">Estado</th>
-        </tr></thead>
-        <tbody>{bug_rows}</tbody>
-      </table>""" if alcance_data["bugs"] else ""
-
-    tasks_section = f"""
-      <div style="padding:10px 20px 4px;font-size:10px;font-weight:500;color:#888;text-transform:uppercase;letter-spacing:.05em;">
-        Nuevas funcionalidades / Implementaciones <span style="font-weight:400;color:#aaa;">({len(alcance_data["tasks"])})</span>
-      </div>
-      <table style="width:100%;border-collapse:collapse;">
-        <thead><tr style="background:#F5F4F0;">
-          <th style="padding:7px 14px;text-align:left;font-size:10px;font-weight:500;color:#888;text-transform:uppercase;">#</th>
-          <th style="padding:7px 14px;text-align:left;font-size:10px;font-weight:500;color:#888;text-transform:uppercase;">Título</th>
-          <th style="padding:7px 10px;text-align:center;font-size:10px;font-weight:500;color:#888;text-transform:uppercase;">Estado</th>
-        </tr></thead>
-        <tbody>{task_rows}</tbody>
-      </table>""" if alcance_data["tasks"] else ""
-
     return f"""
-    <div style="margin-top:14px;padding-top:14px;border-top:1px solid #EDECEA;">
-      <div style="font-size:11px;font-weight:500;color:#888;text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px;">
-        Ítems del alcance — {alcance_data["uh_title"]}
+    <div style="margin-top:16px;border-top:1px solid #EDECEA;padding-top:16px;">
+      <div style="font-size:11px;font-weight:600;color:{ACCENT_COLOR};text-transform:uppercase;letter-spacing:.05em;margin-bottom:12px;">
+        {alcance_data["uh_title"]} (Total: {alcance_data["total"]} ítems)
       </div>
-      {bugs_section}
-      {tasks_section}
+      
+      <!-- Desplegable de Alcance -->
+      <div style="background:#fff;border-radius:8px;border:1px solid #EDECEA;overflow:hidden;margin-bottom:12px;">
+        <div style="padding:12px 20px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;
+                    background:#FAFAF8;transition:background .15s;"
+             onmouseover="this.style.background='#F1F1EF'" onmouseout="this.style.background='#FAFAF8'"
+             onclick="var box=this.nextElementSibling;if(box.style.display==='none'){{box.style.display='block';}}else{{box.style.display='none';}}">
+          <span style="font-size:12px;font-weight:600;color:{SECONDARY_COLOR};">VER ÍTEMS DE ALCANCE Y NUEVAS FUNCIONALIDADES</span>
+          <span style="font-size:12px;color:#888;">&#9660;</span>
+        </div>
+        <div style="display:none;padding:12px 0;">
+          {f'''
+          <div style="padding:8px 20px;font-size:10px;font-weight:600;color:#888;text-transform:uppercase;">Errores / Bugs ({len(alcance_data["bugs"])})</div>
+          <table style="width:100%;border-collapse:collapse;margin-bottom:16px;">
+            <thead><tr style="background:#F5F4F0;"><th style="padding:7px 14px;text-align:left;font-size:10px;color:#888;">#</th><th style="padding:7px 14px;text-align:left;font-size:10px;color:#888;">Título</th><th style="padding:7px 10px;text-align:center;font-size:10px;color:#888;">Estado</th></tr></thead>
+            <tbody>{bug_rows}</tbody>
+          </table>
+          ''' if alcance_data["bugs"] else ""}
+          
+          {f'''
+          <div style="padding:8px 20px;font-size:10px;font-weight:600;color:#888;text-transform:uppercase;">Nuevas funcionalidades ({len(alcance_data["tasks"])})</div>
+          <table style="width:100%;border-collapse:collapse;">
+            <thead><tr style="background:#F5F4F0;"><th style="padding:7px 14px;text-align:left;font-size:10px;color:#888;">#</th><th style="padding:7px 14px;text-align:left;font-size:10px;color:#888;">Título</th><th style="padding:7px 10px;text-align:center;font-size:10px;color:#888;">Estado</th></tr></thead>
+            <tbody>{task_rows}</tbody>
+          </table>
+          ''' if alcance_data["tasks"] else ""}
+        </div>
+      </div>
     </div>"""
 
 def _incidents_block(inc_data, section_num="4.1", title="Incidentes detectados durante las pruebas del ciclo", bug_label="Detalle de bugs"):
@@ -395,44 +406,64 @@ def _incidents_block(inc_data, section_num="4.1", title="Incidentes detectados d
     )
 
     # Donut charts
-    sev_colors = {"Crítico":"#E24B4A","Alto":"#BA7517","Mediano":"#378ADD","Bajo":"#639922"}
+    sev_colors = {"Crítico":"#E24B4A", "Alto":"#D88C3A", "Mediano":"#ECC21D", "Bajo":"#5F9598"}
     chart_id   = f"c{abs(hash(section_num+str(total)))%99999}"
     sev_labels = [s for s in ["Crítico","Alto","Mediano","Bajo"] if by_sev.get(s)]
     sev_vals   = [len(by_sev[s]) for s in sev_labels]
     sev_cols   = [sev_colors[s] for s in sev_labels]
-    mod_labels = list(inc_data["by_module"].keys())[:6]
-    mod_vals   = [sum(inc_data["by_module"][m].values()) for m in mod_labels]
-    mod_cols   = ["#7F77DD","#1D9E75","#D85A30","#378ADD","#BA7517","#E24B4A"]
+    
+    # Ordenamiento por cantidad de incidentes (de mayor a menor)
+    sorted_modules = sorted(inc_data["by_module"].items(), key=lambda x: sum(x[1].values()), reverse=True)
+    
+    mod_labels = [m for m, _ in sorted_modules][:6]
+    mod_vals   = [sum(v.values()) for _, v in sorted_modules][:6]
+    mod_cols   = [SECONDARY_COLOR, ACCENT_COLOR, PRIMARY_COLOR, "#d1d1d1", "#8baeb0", "#487182"]
 
     mod_rows = "".join(
         f'<tr style="border-top:1px solid #EDECEA;">'
-        f'<td style="padding:8px 16px;font-size:13px;color:#3d3d3a;">{mod}</td>'
-        f'<td style="padding:8px 8px;text-align:center;font-size:13px;color:#888;">{sum(sv.values())}</td>'
-        f'<td style="padding:8px 8px;text-align:center;font-size:13px;font-weight:600;color:#2B35C1;">{pct(sum(sv.values()), total)}%</td>'
-        f'<td style="padding:8px 14px;">{"".join(_sev_pill(s,sv.get(s,0)) for s in ["Crítico","Alto","Mediano","Bajo"] if sv.get(s,0))}</td>'
+        f'<td style="padding:11px 16px;font-size:14px;color:#3d3d3a;">{mod}</td>'
+        f'<td style="padding:11px 8px;text-align:center;font-size:14px;color:#3d3d3a;font-weight:600;">{sum(sv.values())}</td>'
+        f'<td style="padding:11px 8px;text-align:center;font-size:14px;font-weight:600;color:{SECONDARY_COLOR};">{pct(sum(sv.values()), total)}%</td>'
+        f'<td style="padding:11px 14px;">{"".join(_sev_pill(s,sv.get(s,0)) for s in ["Crítico","Alto","Mediano","Bajo"] if sv.get(s,0))}</td>'
         f'</tr>'
-        for mod, sv in sorted(inc_data["by_module"].items())
+        for mod, sv in sorted_modules
     )
 
-    bug_rows = "".join(
-        f'<tr style="border-top:1px solid #EDECEA;">'
-        f'<td style="padding:8px 14px;font-size:12px;color:#888;">#{inc["id"]}</td>'
-        f'<td style="padding:8px 14px;font-size:13px;color:#3d3d3a;">{inc["title"]}</td>'
-        f'<td style="padding:8px 8px;text-align:center;">{_sev_pill(inc["sev"])}</td>'
-        f'<td style="padding:8px 8px;text-align:center;">'
-        f'<span style="font-size:11px;font-weight:500;padding:2px 8px;border-radius:20px;'
-        f'{"background:#EAF3DE;color:#3B6D11;" if inc["state"].lower() in ("closed","resolved","done","cerrado","resuelto") else "background:#F1EFE8;color:#5F5E5A;"}">'
-        f'{inc["state"]}</span></td>'
-        f'</tr>'
-        for inc in inc_data["incidents"]
-    )
+    bug_rows = ""
+    sev_edge_colors = {"Crítico":"#E24B4A", "Alto":"#D88C3A", "Mediano":"#ECC21D", "Bajo":"#5F9598"}
+    
+    for idx, inc in enumerate(inc_data["incidents"]):
+        edge_col = sev_edge_colors.get(inc["sev"], "#888")
+        # Zebra: par #F9F8F6, impar #fff
+        row_bg = "#F9F8F6" if idx % 2 == 1 else "#ffffff"
+        
+        bug_rows += (
+            f'<tr style="border-top:1px solid #E4E2DF; background:{row_bg};">'
+            f'<td style="padding:11px 14px; padding-left:12px; font-size:12px; color:#888; border-left:3px solid {edge_col};">'
+            f'#{inc["id"]}</td>'
+            f'<td style="padding:11px 14px; font-size:14px; color:#3d3d3a;">{inc["title"]}</td>'
+            f'<td style="padding:11px 8px; text-align:center;">{_sev_pill(inc["sev"])}</td>'
+            f'<td style="padding:11px 8px; text-align:center;">'
+            f'<span style="font-size:12px; font-weight:600; padding:2px 10px; border-radius:20px;'
+            f'{"background:#EAF3DE;color:#3B6D11;" if inc["state"].lower() in ("closed","resolved","done","cerrado","resuelto") else "background:#F1EFE8;color:#5F5E5A;"}">'
+            f'{inc["state"]}</span></td>'
+            f'</tr>'
+        )
 
     return f"""
-    <section style="margin-bottom:20px;background:#fff;border-radius:12px;border:1px solid #EDECEA;overflow:hidden;">
-      <div style="padding:14px 20px;border-bottom:1px solid #EDECEA;background:#FAFAF8;">
-        <div style="font-size:11px;font-weight:600;color:#2B35C1;text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px;">{section_num}</div>
-        <div style="font-size:14px;font-weight:600;color:#1a1a18;margin-bottom:3px;">{title}</div>
-        <div style="font-size:12px;color:#888;">{inc_data.get('uh_title','')} · {total} incidentes en total</div>
+    <section id="incidentes_{section_num}" style="margin-bottom:24px;background:#fff;border-radius:12px;border:1px solid #EDECEA;overflow:hidden;">
+      <div style="padding:16px 20px;border-bottom:1px solid #EDECEA;background:#FAFAF8;">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <div>
+            <div style="font-size:11px;font-weight:700;color:{SECONDARY_COLOR};text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px;">{section_num}</div>
+            <div style="font-size:16px;font-weight:600;color:{PRIMARY_COLOR};margin-bottom:3px;">{title}</div>
+            <div style="font-size:13px;color:#888;">{inc_data.get('uh_title','')}</div>
+          </div>
+          <div style="text-align:right;background:{SECONDARY_COLOR};color:#fff;padding:8px 18px;border-radius:10px;">
+            <div style="font-size:10px;text-transform:uppercase;font-weight:600;opacity:0.8;">Total Incidentes</div>
+            <div style="font-size:24px;font-weight:700;">{total}</div>
+          </div>
+        </div>
       </div>
       <div style="padding:10px 20px;border-bottom:1px solid #EDECEA;background:#FAFAF8;">
         <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:5px;">
@@ -451,14 +482,13 @@ def _incidents_block(inc_data, section_num="4.1", title="Incidentes detectados d
         </div>
       </div>
       <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
-      <script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-datalabels/2.2.0/chartjs-plugin-datalabels.min.js"></script>
       <script>
       (function(){{
-        Chart.register(ChartDataLabels);
-        var pctFmt = {{formatter:function(v,ctx){{var sum=ctx.chart.data.datasets[0].data.reduce(function(a,b){{return a+b}},0);var p=Math.round(v/sum*100);return p>=8?p+'%':'';}},color:'#fff',font:{{weight:'bold',size:13}},anchor:'center',align:'center',textShadowBlur:4,textShadowColor:'rgba(0,0,0,.35)'}};
+        var ttCb = {{label:function(ctx){{var sum=ctx.chart.data.datasets[0].data.reduce(function(a,b){{return a+b}},0);var p=Math.round(ctx.parsed/sum*100);return ' '+ctx.label+': '+p+'%';}}}};
+        var ttOpts = {{enabled:true,backgroundColor:'rgba(30,30,30,.9)',titleFont:{{size:12,weight:'600'}},bodyFont:{{size:12}},padding:10,cornerRadius:8,callbacks:ttCb}};
         var legOpts = {{position:'bottom',labels:{{font:{{size:12,weight:'500'}},padding:14,usePointStyle:true,pointStyle:'rectRounded',boxWidth:14,boxHeight:10}}}};
-        new Chart(document.getElementById('{chart_id}_s'),{{type:'doughnut',data:{{labels:{sev_labels},datasets:[{{data:{sev_vals},backgroundColor:{sev_cols},borderWidth:3,borderColor:'#fff',hoverBorderWidth:4,hoverOffset:6}}]}},options:{{responsive:true,maintainAspectRatio:true,plugins:{{datalabels:pctFmt,legend:legOpts}},cutout:'60%',animation:{{animateRotate:true,duration:600}}}}}});
-        new Chart(document.getElementById('{chart_id}_m'),{{type:'doughnut',data:{{labels:{mod_labels},datasets:[{{data:{mod_vals},backgroundColor:{mod_cols},borderWidth:3,borderColor:'#fff',hoverBorderWidth:4,hoverOffset:6}}]}},options:{{responsive:true,maintainAspectRatio:true,plugins:{{datalabels:pctFmt,legend:legOpts}},cutout:'60%',animation:{{animateRotate:true,duration:600}}}}}});
+        new Chart(document.getElementById('{chart_id}_s'),{{type:'doughnut',data:{{labels:{sev_labels},datasets:[{{data:{sev_vals},backgroundColor:{sev_cols},borderWidth:3,borderColor:'#fff',hoverBorderWidth:4,hoverOffset:8}}]}},options:{{responsive:true,maintainAspectRatio:true,plugins:{{tooltip:ttOpts,legend:legOpts}},cutout:'60%',animation:{{animateRotate:true,duration:600}}}}}});
+        new Chart(document.getElementById('{chart_id}_m'),{{type:'doughnut',data:{{labels:{mod_labels},datasets:[{{data:{mod_vals},backgroundColor:{mod_cols},borderWidth:3,borderColor:'#fff',hoverBorderWidth:4,hoverOffset:8}}]}},options:{{responsive:true,maintainAspectRatio:true,plugins:{{tooltip:ttOpts,legend:legOpts}},cutout:'60%',animation:{{animateRotate:true,duration:600}}}}}});
       }})();
       </script>
       <div style="padding:12px 20px 4px;font-size:10px;font-weight:500;color:#888;text-transform:uppercase;letter-spacing:.05em;">Porcentaje de incidencias detectadas por módulo / funcionalidad</div>
@@ -471,10 +501,13 @@ def _incidents_block(inc_data, section_num="4.1", title="Incidentes detectados d
         </tr></thead>
         <tbody>{mod_rows}</tbody>
       </table>
-      <div style="padding:12px 20px 4px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;"
-           onclick="var tbl=this.nextElementSibling;var arrow=this.querySelector('.toggle-arrow');if(tbl.style.display==='none'){{tbl.style.display='table';arrow.style.transform='rotate(0deg)';}}else{{tbl.style.display='none';arrow.style.transform='rotate(-90deg)';}}">
-        <span style="font-size:10px;font-weight:500;color:#888;text-transform:uppercase;letter-spacing:.05em;">{bug_label} ({len(inc_data['incidents'])})</span>
-        <span class="toggle-arrow" style="font-size:14px;color:#888;transition:transform .2s;display:inline-block;">▼</span>
+      <div style="padding:12px 20px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;
+                  background:#FAFAF8;border-top:1px solid #EDECEA;border-bottom:1px solid #EDECEA;
+                  margin-top:6px;transition:background .15s;"
+           onmouseover="this.style.background='#F1F0EC'" onmouseout="this.style.background='#FAFAF8'"
+           onclick="var tbl=this.nextElementSibling;var arrow=this.querySelector('.toggle-arrow');if(tbl.style.display==='none'){{tbl.style.display='table';arrow.innerHTML='&#9654;';}}else{{tbl.style.display='none';arrow.innerHTML='&#9654;';}}">
+        <span style="font-size:12px;font-weight:600;color:#5F5E5A;text-transform:uppercase;letter-spacing:.06em;">{bug_label} ({len(inc_data['incidents'])})</span>
+        <span class="toggle-arrow" style="font-size:12px;color:#888;transition:transform .2s;display:inline-block;">&#9654;</span>
       </div>
       <table style="width:100%;border-collapse:collapse;">
         <thead><tr style="background:#F5F4F0;">
@@ -519,53 +552,82 @@ def _severity_ref():
     </section>"""
 
 # ── Report generator ───────────────────────────────────────────
-def generate_report_html(form):
+def generate_report_html(form, demo_data=None):
+    """Orquestador: recolecta datos y genera el HTML final."""
     now     = datetime.now().strftime("%d/%m/%Y %H:%M")
-    prod    = form.get("producto","SALUS WEB")
-    version = form.get("version","")
-    ciclo   = form.get("ciclo","")
-    agrup   = form.get("agrupador","SALUS")
-    result  = form.get("resultado","")
-    fi_plan = form.get("fecha_inicio_plan","")
-    ff_plan = form.get("fecha_fin_plan","")
-    fi_real = form.get("fecha_inicio_real","")
-    ff_real = form.get("fecha_fin_real","")
-    alcance      = [a.strip() for a in form.getlist("alcance") if a.strip()]
-    resps        = [r.strip() for r in form.getlist("responsables") if r.strip()]
-    riesgos      = form.get("riesgos","").strip() or "N/A"
-    observaciones= form.get("observaciones","").strip() or "N/A"
+    
+    if demo_data:
+        # MODO DEMO
+        prod    = form.get("producto","SALUS WEB")
+        version = form.get("version","v1.0")
+        ciclo   = form.get("ciclo","1")
+        agrup   = form.get("agrupador","DEMO")
+        result  = form.get("resultado","Exitoso")
+        fi_plan = form.get("fecha_inicio_plan","01/01/2026")
+        ff_plan = form.get("fecha_fin_plan","15/01/2026")
+        fi_real = form.get("fecha_inicio_real","01/01/2026")
+        ff_real = form.get("fecha_fin_real","15/01/2026")
+        alcance      = form.get("alcance", [])
+        resps        = form.get("responsables", [])
+        riesgos      = form.get("riesgos","")
+        observaciones= form.get("observaciones","")
+        
+        alcance_data = demo_data["alcance"]
+        inc_data     = demo_data["inc"]
+        prev_data    = demo_data.get("prev")
+        total_all    = demo_data["total_all"]
+        pass_all     = demo_data["pass_all"]
+        fail_all     = demo_data["fail_all"]
+        block_all    = demo_data["block_all"]
+        notrun_all   = demo_data["notrun_all"]
+        plans_data   = []
+    else:
+        # MODO REAL
+        prod    = form.get("producto","SALUS WEB")
+        version = form.get("version","")
+        ciclo   = form.get("ciclo","")
+        agrup   = form.get("agrupador","SALUS")
+        result  = form.get("resultado","")
+        fi_plan = form.get("fecha_inicio_plan","")
+        ff_plan = form.get("fecha_fin_plan","")
+        fi_real = form.get("fecha_inicio_real","")
+        ff_real = form.get("fecha_fin_real","")
+        alcance      = [a.strip() for a in form.getlist("alcance") if a.strip()]
+        resps        = [r.strip() for r in form.getlist("responsables") if r.strip()]
+        riesgos      = form.get("riesgos","").strip() or "N/A"
+        observaciones= form.get("observaciones","").strip() or "N/A"
 
-    # Múltiples Test Plans
-    alcance_id   = int(form.get("alcance_uh_id", 0)) if form.get("alcance_uh_id","").strip().isdigit() else None
-    plan_ids_raw = [p.strip() for p in form.getlist("plan_ids") if p.strip().isdigit()]
-    if not plan_ids_raw:
-        return None, "No se ingresaron IDs de Test Plans válidos."
+        # Múltiples Test Plans
+        alcance_id   = int(form.get("alcance_uh_id", 0)) if form.get("alcance_uh_id","").strip().isdigit() else None
+        plan_ids_raw = [p.strip() for p in form.getlist("plan_ids") if p.strip().isdigit()]
+        if not plan_ids_raw:
+            return None, "No se ingresaron IDs de Test Plans válidos."
 
-    plans_data = []
-    for pid_str in plan_ids_raw:
-        pd, err = build_plan_data(int(pid_str))
-        if err:
-            return None, err
-        plans_data.append(pd)
+        plans_data = []
+        for pid_str in plan_ids_raw:
+            pd, err = build_plan_data(int(pid_str))
+            if err:
+                return None, err
+            plans_data.append(pd)
 
-    uh_id   = int(form.get("uh_id", 0)) if form.get("uh_id","").strip().isdigit() else None
-    prev_id = int(form.get("prev_uh_id", 0)) if form.get("prev_uh_id","").strip().isdigit() else None
+        uh_id   = int(form.get("uh_id", 0)) if form.get("uh_id","").strip().isdigit() else None
+        prev_uh_id = int(form.get("prev_uh_id", 0)) if form.get("prev_uh_id","").strip().isdigit() else None
 
-    alcance_data = build_alcance_data(alcance_id) if alcance_id else None
-    inc_data  = build_incident_data(uh_id)
-    prev_data = build_incident_data(prev_id) if prev_id else None
+        alcance_data = build_alcance_data(alcance_id) if alcance_id else None
+        inc_data     = build_incident_data(uh_id)
+        prev_data    = build_incident_data(prev_uh_id) if prev_uh_id else None
 
-    # Totales globales sumando todos los planes
-    from collections import defaultdict as _dd
-    global_counts = _dd(int)
-    for pd in plans_data:
-        for k, v in pd["counts"].items():
-            global_counts[k] += v
-    total_all  = sum(pd["total"] for pd in plans_data)
-    pass_all   = global_counts.get("passed",0)
-    fail_all   = global_counts.get("failed",0)
-    block_all  = global_counts.get("blocked",0)
-    notrun_all = total_all - pass_all - fail_all - block_all
+        # Totales globales sumando todos los planes
+        from collections import defaultdict as _dd
+        global_counts = _dd(int)
+        for pd in plans_data:
+            for k, v in pd["counts"].items():
+                global_counts[k] += v
+        total_all  = sum(pd["total"] for pd in plans_data)
+        pass_all   = global_counts.get("passed",0)
+        fail_all   = global_counts.get("failed",0)
+        block_all  = global_counts.get("blocked",0)
+        notrun_all = total_all - pass_all - fail_all - block_all
 
     result_color = "#791F1F" if result and "fallido" in result.lower() else "#3B6D11"
     resp_li = "".join(f'<li style="font-size:13px;color:#3d3d3a;padding:2px 0;">{r}</li>' for r in resps) or '<li style="font-size:13px;color:#888;">—</li>'
@@ -669,51 +731,79 @@ def generate_report_html(form):
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
   <style>
     *,*::before,*::after{{box-sizing:border-box;margin:0;padding:0;}}
-    body{{font-family:'DM Sans',sans-serif;background:#F5F4F0;color:#1a1a18;padding:32px 24px;}}
-    h2{{font-size:13px;font-weight:500;color:#888;text-transform:uppercase;letter-spacing:.07em;margin:0 0 12px;}}
-    @media print{{body{{background:#fff;padding:0;}}.no-print{{display:none;}}}}
+    body{{font-family:'DM Sans',sans-serif;background:#F3F4F4;color:#061E29;padding:32px 24px;line-height:1.65;font-weight:500;}}
+    h2{{font-size:13px;font-weight:700;color:#1D546D;text-transform:uppercase;letter-spacing:.08em;margin:16px 0 12px;display:flex;align-items:center;gap:8px;}}
+    h2::before{{content:'';display:inline-block;width:3px;height:14px;background:{ACCENT_COLOR};border-radius:2px;}}
+    h1, h2, h3, .subtitle{{ font-weight: 600 !important; }}
+    
+    table {{ width: 100%; border-collapse: collapse; }}
+    th {{ font-size: 12px; font-weight: 600 !important; color: #444 !important; text-transform: uppercase; padding: 11px 14px; text-align: left; background: #F5F4F0; }}
+    td {{ font-size: 14px; font-weight: 500; padding: 11px 14px; color: #3d3d3a; }}
+    
+    .btn-export:hover {{ background: {SECONDARY_COLOR} !important; opacity: 0.9; transform: translateY(-1px); transition: all 0.2s; }}
+    .nav-link {{ color: {SECONDARY_COLOR}; text-decoration: none; font-size: 12px; font-weight: 600; }}
+    .nav-link:hover {{ text-decoration: underline; }}
+
+    @media print{{
+        body{{background:#fff;padding:0;}}
+        .no-print{{display:none !important;}}
+        table, td, th {{ font-size: 12pt !important; }}
+        tr {{ page-break-inside: avoid !important; }}
+    }}
   </style>
 </head>
 <body>
 <div style="max-width:960px;margin:0 auto;">
 
   <!-- Header -->
-  <div style="background:#fff;border-radius:12px;border:1px solid #EDECEA;padding:22px 24px;margin-bottom:16px;">
-    <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:12px;">
+  <div style="background:{PRIMARY_COLOR};border-radius:12px 12px 0 0;padding:28px 32px;color:{BG_COLOR};">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:16px;">
       <div>
-        <div style="font-size:10px;font-weight:500;color:#888;text-transform:uppercase;letter-spacing:.1em;margin-bottom:5px;">{agrup}</div>
-        <h1 style="font-size:24px;font-weight:600;color:#1a1a18;">Informe Final de Pruebas</h1>
-        <div style="font-size:14px;color:#888;margin-top:3px;">{prod} · Ciclo {ciclo} · {version}</div>
+        <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.12em;margin-bottom:8px;opacity:0.8;">{agrup}</div>
+        <h1 style="font-size:28px;font-weight:600;">Informe Final de Pruebas</h1>
+        <div style="font-size:15px;margin-top:4px;opacity:0.9;">{prod} · Ciclo {ciclo} · {version}</div>
       </div>
-      <div style="display:flex;gap:8px;align-items:center;">
-        <span style="font-size:12px;font-weight:500;padding:5px 14px;border-radius:8px;
-          background:{result_color}1A;color:{result_color};border:1px solid {result_color}33;">{result or "—"}</span>
-        <button class="no-print" onclick="window.print()" style="padding:5px 14px;border-radius:8px;
-          border:1px solid #EDECEA;background:#fff;font-family:inherit;font-size:12px;cursor:pointer;">Exportar PDF</button>
+      <div style="display:flex;gap:10px;align-items:center;">
+        <span style="font-size:12px;font-weight:600;padding:6px 16px;border-radius:8px;
+          background:{BG_COLOR};color:{PRIMARY_COLOR};border:1px solid rgba(255,255,255,0.2);">{result or "—"}</span>
+        <button class="no-print btn-export" onclick="window.print()" style="padding:6px 16px;border-radius:8px;
+          border:none;background:{ACCENT_COLOR};color:#fff;font-family:inherit;font-size:12px;font-weight:600;cursor:pointer;">Exportar PDF</button>
       </div>
     </div>
-    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:18px;padding-top:18px;border-top:1px solid #EDECEA;">
+  </div>
+
+  <!-- Indice de Navegacion -->
+  <div class="no-print" style="background:#fff; border:1px solid #EDECEA; border-top:none; padding:12px 32px; display:flex; gap:20px; flex-wrap:wrap; border-bottom: 2px solid #F3F4F4;">
+    <a href="#especificaciones" class="nav-link">Especificaciones</a>
+    <a href="#detalle" class="nav-link">Detalle de pruebas</a>
+    <a href="#resultados" class="nav-link">Resultados</a>
+    <a href="#incidentes" class="nav-link">Incidentes</a>
+    <a href="#riesgos" class="nav-link">Riesgos</a>
+  </div>
+
+  <div style="background:#fff;border-radius:0 0 12px 12px;border:1px solid #EDECEA;border-top:none;padding:24px 32px;margin-bottom:24px;">
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:24px;">
       <div>
-        <div style="font-size:10px;color:#888;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px;">Producto</div>
-        <div style="font-size:13px;font-weight:500;">{prod}</div>
+        <div style="font-size:10px;color:#888;text-transform:uppercase;font-weight:600;letter-spacing:.05em;margin-bottom:6px;">Producto</div>
+        <div style="font-size:14px;font-weight:600;color:{PRIMARY_COLOR};">{prod}</div>
         <div style="font-size:12px;color:#888;margin-top:2px;">Versión {version}</div>
       </div>
       <div>
-        <div style="font-size:10px;color:#888;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px;">Plan de ejecución</div>
+        <div style="font-size:10px;color:#888;text-transform:uppercase;font-weight:600;letter-spacing:.05em;margin-bottom:6px;">Plan de ejecución</div>
         <div style="font-size:12px;color:#3d3d3a;">
           <span style="color:#888;">Planificado:</span> {fi_plan} → {ff_plan}<br>
           <span style="color:#888;">Real:</span> {fi_real} → {ff_real}
         </div>
       </div>
       <div>
-        <div style="font-size:10px;color:#888;text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px;">Responsables de ejecución</div>
+        <div style="font-size:10px;color:#888;text-transform:uppercase;font-weight:600;letter-spacing:.05em;margin-bottom:6px;">Responsables de ejecución</div>
         <ul style="list-style:none;padding:0;">{resp_li}</ul>
       </div>
     </div>
   </div>
 
   <!-- 1. Especificaciones -->
-  <div style="background:#fff;border-radius:12px;border:1px solid #EDECEA;padding:16px 20px;margin-bottom:16px;">
+  <div id="especificaciones" style="background:#fff;border-radius:12px;border:1px solid #EDECEA;padding:16px 20px;margin-bottom:24px;">
     <h2>1 · Especificaciones</h2>
     <div style="font-size:11px;font-weight:500;color:#888;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;">Alcance {version}</div>
     <ul style="padding-left:18px;">{alc_li}</ul>
@@ -721,49 +811,54 @@ def generate_report_html(form):
   </div>
 
   <!-- 2. Detalle de pruebas -->
-  <div style="background:#fff;border-radius:12px;border:1px solid #EDECEA;overflow:hidden;margin-bottom:16px;">
+  <div id="detalle" style="background:#fff;border-radius:12px;border:1px solid #EDECEA;overflow:hidden;margin-bottom:24px;">
     <div style="padding:13px 20px;border-bottom:1px solid #EDECEA;background:#FAFAF8;">
       <h2 style="margin:0;">2 · Detalle de pruebas</h2>
     </div>
-    <table style="width:100%;border-collapse:collapse;">
-      <thead><tr style="background:#F5F4F0;">
-        <th style="padding:7px 20px;text-align:left;font-size:10px;font-weight:500;color:#888;text-transform:uppercase;">Producto</th>
-        <th style="padding:7px 14px;text-align:left;font-size:10px;font-weight:500;color:#888;text-transform:uppercase;">Título / Descripción</th>
-        <th style="padding:7px 14px;text-align:left;font-size:10px;font-weight:500;color:#888;text-transform:uppercase;">Tipo de prueba</th>
-        <th style="padding:7px 14px;text-align:left;font-size:10px;font-weight:500;color:#888;text-transform:uppercase;">Resultado</th>
+    <table>
+      <thead><tr>
+        <th>Producto</th>
+        <th>Título / Descripción</th>
+        <th>Tipo de prueba</th>
+        <th>Resultado</th>
       </tr></thead>
       <tbody>{det_rows}</tbody>
     </table>
   </div>
 
   <!-- 3. Resultados -->
-  <div style="margin-bottom:12px;"><h2>3 · Resultados de las pruebas</h2></div>
-  <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px;">
-    <div style="background:#EAF3DE;border-radius:10px;padding:13px 16px;">
-      <div style="font-size:10px;font-weight:500;color:#3B6D11;text-transform:uppercase;letter-spacing:.05em;">Passed</div>
-      <div style="font-size:26px;font-weight:600;color:#27500A;margin:3px 0 2px;">{pass_all}</div>
-      <div style="font-size:11px;color:#3B6D11;">{pct(pass_all,total_all)}% del total</div>
+  <div id="resultados" style="margin-bottom:12px;"><h2>3 · Resultados de las pruebas</h2></div>
+  <div style="display:grid;grid-template-columns:1.5fr repeat(4, 1fr);gap:16px;margin-bottom:24px;">
+    <div style="background:{PRIMARY_COLOR};border-radius:12px;padding:16px 20px;color:#fff;">
+      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;opacity:0.8;">Total Casos</div>
+      <div style="font-size:32px;font-weight:700;margin:6px 0 4px;">{total_all}</div>
+      <div style="font-size:12px;opacity:0.8;">Casos totales ejecutados</div>
     </div>
-    <div style="background:#FCEBEB;border-radius:10px;padding:13px 16px;">
-      <div style="font-size:10px;font-weight:500;color:#A32D2D;text-transform:uppercase;letter-spacing:.05em;">Failed</div>
-      <div style="font-size:26px;font-weight:600;color:#501313;margin:3px 0 2px;">{fail_all}</div>
-      <div style="font-size:11px;color:#A32D2D;">{pct(fail_all,total_all)}% del total</div>
+    <div style="background:#EBF7F2;border-radius:12px;padding:16px 20px;border:1px solid #C2E7D9;">
+      <div style="font-size:11px;font-weight:700;color:#2D6A4F;text-transform:uppercase;letter-spacing:.05em;">Passed</div>
+      <div style="font-size:28px;font-weight:700;color:#1B4332;margin:4px 0 2px;">{pass_all}</div>
+      <div style="font-size:11px;font-weight:600;color:#2D6A4F;">{pct(pass_all,total_all)}%</div>
     </div>
-    <div style="background:#FAEEDA;border-radius:10px;padding:13px 16px;">
-      <div style="font-size:10px;font-weight:500;color:#854F0B;text-transform:uppercase;letter-spacing:.05em;">Blocked</div>
-      <div style="font-size:26px;font-weight:600;color:#412402;margin:3px 0 2px;">{block_all}</div>
-      <div style="font-size:11px;color:#854F0B;">{pct(block_all,total_all)}% del total</div>
+    <div style="background:#FDF2F2;border-radius:12px;padding:16px 20px;border:1px solid #F9D6D6;">
+      <div style="font-size:11px;font-weight:700;color:#A32D2D;text-transform:uppercase;letter-spacing:.05em;">Failed</div>
+      <div style="font-size:28px;font-weight:700;color:#501313;margin:4px 0 2px;">{fail_all}</div>
+      <div style="font-size:11px;font-weight:600;color:#A32D2D;">{pct(fail_all,total_all)}%</div>
     </div>
-    <div style="background:#F1EFE8;border-radius:10px;padding:13px 16px;">
-      <div style="font-size:10px;font-weight:500;color:#5F5E5A;text-transform:uppercase;letter-spacing:.05em;">Not Run</div>
-      <div style="font-size:26px;font-weight:600;color:#2C2C2A;margin:3px 0 2px;">{notrun_all}</div>
-      <div style="font-size:11px;color:#5F5E5A;">{pct(notrun_all,total_all)}% del total</div>
+    <div style="background:#FFF9F0;border-radius:12px;padding:16px 20px;border:1px solid #FFE8CC;">
+      <div style="font-size:11px;font-weight:700;color:#854F0B;text-transform:uppercase;letter-spacing:.05em;">Blocked</div>
+      <div style="font-size:28px;font-weight:700;color:#412402;margin:4px 0 2px;">{block_all}</div>
+      <div style="font-size:11px;font-weight:600;color:#854F0B;">{pct(block_all,total_all)}%</div>
+    </div>
+    <div style="background:#F8F9F9;border-radius:12px;padding:16px 20px;border:1px solid #E5E7EB;">
+      <div style="font-size:11px;font-weight:700;color:#4B5563;text-transform:uppercase;letter-spacing:.05em;">Not Run</div>
+      <div style="font-size:28px;font-weight:700;color:#1F2937;margin:4px 0 2px;">{notrun_all}</div>
+      <div style="font-size:11px;font-weight:600;color:#4B5563;">{pct(notrun_all,total_all)}%</div>
     </div>
   </div>
   {suite_cards}
 
   <!-- 4. Incidentes -->
-  <div style="background:#fff;border-radius:12px;border:1px solid #EDECEA;padding:14px 20px;margin-bottom:12px;">
+  <div id="incidentes" style="background:#fff;border-radius:12px;border:1px solid #EDECEA;padding:14px 20px;margin-bottom:12px;">
     <h2 style="margin:0;">4 · Detalle de incidentes</h2>
     <div style="font-size:13px;color:#888;margin-top:6px;">Durante las pruebas se detectaron los siguientes incidentes, agrupados según su nivel de criticidad.</div>
   </div>
@@ -820,6 +915,100 @@ def generate():
     filename = f"informe_{prod}_{version}_ciclo{ciclo}_{ts}.html"
     return Response(html, mimetype="text/html",
                     headers={"Content-Disposition": f"attachment; filename={filename}"})
+
+@app.route("/demo")
+def demo_report():
+    """Genera un reporte de ejemplo con los nuevos cambios solicitados."""
+    now     = datetime.now().strftime("%d/%m/%Y %H:%M")
+    prod    = "SALUS WEB"
+    version = "v17.2.1"
+    ciclo   = "N°2"
+    agrup   = "AGRUPADOR URGENCIAS - SALUS"
+    result  = "Fallido con incidentes críticos y altos"
+    fi_plan = "07/03/2026"; ff_plan = "21/03/2026"
+    fi_real = "07/03/2026"; ff_real = "25/03/2026"
+    resps   = ["Franco Osuna", "Rafael Jose Cañizalez Mendoza", "Gloria Huilen Garcia"]
+    alcance = ["Smoke Test", "Paquete de incidencias", "Pruebas integrales"]
+    riesgos = "Inestabilidad en el ambiente de integración durante ventanas de deploy."
+    observaciones = "Se requiere hotfix inmediato en el módulo de Formulario del caso."
+
+    # Mock alcance_data
+    alc_data = {
+        "uh_id": 9999, "uh_title": "MVP-2. Alcance Funcional",
+        "total": 5,
+        "bugs": [
+            {"id": 8801, "title": "Error al procesar adjuntos duplicados", "state": "Closed"},
+            {"id": 8802, "title": "Fuga de memoria en exportación masiva", "state": "Active"}
+        ],
+        "tasks": [
+            {"id": 8810, "title": "Nuevo módulo de Auditoría", "state": "Done"},
+            {"id": 8811, "title": "Integración con API Seguros", "state": "In Progress"},
+            {"id": 8812, "title": "Rediseño de interfaz de login", "state": "To Do"}
+        ]
+    }
+
+    # Mock incidents (sorting check)
+    mock_incidents = [
+        {"id":1,"title":"Bug 1","state":"New","sev":"Crítico","module":"Formulario del caso"},
+        {"id":2,"title":"Bug 2","state":"Active","sev":"Alto","module":"Formulario del caso"},
+        {"id":3,"title":"Bug 3","state":"Active","sev":"Alto","module":"Formulario del caso"},
+        {"id":4,"title":"Bug 4","state":"Active","sev":"Mediano","module":"Formulario del caso"},
+        {"id":5,"title":"Bug 5","state":"Active","sev":"Bajo","module":"Formulario del caso"},
+        {"id":6,"title":"Bug 6","state":"Active","sev":"Alto","module":"Listados"},
+        {"id":7,"title":"Bug 7","state":"Active","sev":"Alto","module":"Listados"},
+        {"id":8,"title":"Bug 8","state":"Active","sev":"Crítico","module":"Integraciones"}
+    ]
+    
+    by_sev = defaultdict(list)
+    by_mod = defaultdict(lambda: defaultdict(int))
+    for i in mock_incidents:
+        by_sev[i["sev"]].append(i)
+        by_mod[i["module"]][i["sev"]] += 1
+    
+    inc_data = {
+        "uh_id": 90545, "uh_title": "MVP-2. Ciclo de testing 2",
+        "total": len(mock_incidents),
+        "incidents": mock_incidents,
+        "by_sev": dict(by_sev),
+        "by_module": {m: dict(v) for m, v in by_mod.items()}
+    }
+
+    # Mock prev_data
+    mock_prev = {
+        "uh_id": 8800, "uh_title": "MVP-2. Ciclo de testing 1",
+        "total": 2,
+        "incidents": [
+            {"id": 8701, "title": "Error visual en grilla", "state": "Closed", "sev": "Bajo", "module": "General"},
+            {"id": 8702, "title": "Timeout en reporte", "state": "Active", "sev": "Alto", "module": "Reportes"}
+        ],
+        "by_sev": {"Bajo": [{"id": 8701, "sev": "Bajo"}], "Alto": [{"id": 8702, "sev": "Alto"}]},
+        "by_module": {"General": {"Bajo": 1}, "Reportes": {"Alto": 1}}
+    }
+
+    # Totals
+    total_all = 205; pass_all = 183; fail_all = 13; block_all = 0; notrun_all = 9
+
+    # Reuse existing blocks (simplified for demo)
+    # Note: In real app we would call generate_report_html with mock form, 
+    # but here we build manually to ensure demo works regardless of Azure PAT.
+    
+    # We call generate_report_html but mock the parts that call Azure
+    from flask import request as flask_req
+    # This is a trick to populate the form data for the demo
+    html, _ = generate_report_html({
+        "producto": prod, "version": version, "ciclo": ciclo, "agrupador": agrup,
+        "resultado": result, "fecha_inicio_plan": fi_plan, "fecha_fin_plan": ff_plan,
+        "fecha_inicio_real": fi_real, "fecha_fin_real": ff_real,
+        "responsables": resps, "alcance": alcance, "riesgos": riesgos, "observaciones": observaciones,
+        "plan_ids": ["123"] # dummy
+    }, demo_data={
+        "alcance": alc_data, 
+        "inc": inc_data, 
+        "prev": mock_prev,
+        "total_all": total_all, "pass_all": pass_all, "fail_all": fail_all, "block_all": block_all, "notrun_all": notrun_all
+    })
+    
+    return Response(html, mimetype="text/html")
 
 if __name__ == "__main__":
     app.run(debug=False, host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
