@@ -248,28 +248,52 @@
         <div class="divider"></div>
         <div class="field" style="margin-bottom:10px;">
           <label>Alcance desde Test Suites <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:10px;">(Recomendado)</span></label>
-          <span class="hint" style="margin-bottom:8px;display:block;">Si completás estos IDs, el Alcance del informe se extraerá directamente de estas suites, evitando duplicar los datos en los Resultados de Ejecución.</span>
+          <span class="hint" style="margin-bottom:8px;display:block;">Si completás estos IDs, el Alcance del informe se extraerá directamente de estas suites.</span>
           <div class="grid-2">
-            <input type="number" name="suite_incidentes_id" placeholder="Suite ID (Incidencias)">
-            <input type="number" name="suite_implementacion_id" placeholder="Suite ID (Nuevas funcionalidades)">
+            <div class="field">
+              <div style="display:flex;gap:6px;">
+                <input type="number" id="suite-inc-input" name="suite_incidentes_id" placeholder="Suite ID (Incidencias)" style="flex:1;">
+                <button type="button" class="plan-verify" onclick="verifyField('suite-inc-input', 'suite', 'suite-inc-tag')">Verificar</button>
+              </div>
+              <div id="suite-inc-tag" class="plan-tag" style="margin-top:4px;display:inline-block;"></div>
+            </div>
+            <div class="field">
+              <div style="display:flex;gap:6px;">
+                <input type="number" id="suite-imp-input" name="suite_implementacion_id" placeholder="Suite ID (Nuevas funcionalidades)" style="flex:1;">
+                <button type="button" class="plan-verify" onclick="verifyField('suite-imp-input', 'suite', 'suite-imp-tag')">Verificar</button>
+              </div>
+              <div id="suite-imp-tag" class="plan-tag" style="margin-top:4px;display:inline-block;"></div>
+            </div>
           </div>
         </div>
         <div class="grid-2" style="margin-bottom:14px;">
           <div class="field">
             <label>ID UH de alcance <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:10px;">(Opcional / Fallback)</span></label>
-            <input type="number" name="alcance_uh_id" placeholder="ej: 90424">
-            <span class="hint">UH con los bugs/tasks si no se usan las Suites de arriba.</span>
+            <div style="display:flex;gap:6px;">
+              <input type="number" id="alcance-uh-input" name="alcance_uh_id" placeholder="ej: 90424" style="flex:1;">
+              <button type="button" class="plan-verify" onclick="verifyField('alcance-uh-input', 'wi', 'alcance-uh-tag')">Verificar</button>
+            </div>
+            <div id="alcance-uh-tag" class="plan-tag" style="margin-top:4px;display:inline-block;"></div>
+            <span class="hint">UH con los bugs/tasks si no se usan las Suites.</span>
           </div>
           <div class="field">
             <label>ID Feature — incidentes ciclo actual</label>
-            <input type="number" name="uh_id" placeholder="ej: 90425">
+            <div style="display:flex;gap:6px;">
+              <input type="number" id="uh-actual-input" name="uh_id" placeholder="ej: 90425" style="flex:1;">
+              <button type="button" class="plan-verify" onclick="verifyField('uh-actual-input', 'wi', 'uh-actual-tag')">Verificar</button>
+            </div>
+            <div id="uh-actual-tag" class="plan-tag" style="margin-top:4px;display:inline-block;"></div>
             <span class="hint">Feature/UH con los bugs detectados en este ciclo</span>
           </div>
         </div>
         <div class="field">
           <label>ID Feature — ciclo anterior <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:10px;">(opcional)</span></label>
-          <input type="number" name="prev_uh_id" placeholder="ej: 88300">
-          <span class="hint">Feature del ciclo previo para comparar corregidos vs pendientes</span>
+          <div style="display:flex;gap:6px;max-width:50%;">
+            <input type="number" id="prev-uh-input" name="prev_uh_id" placeholder="ej: 88300" style="flex:1;">
+            <button type="button" class="plan-verify" onclick="verifyField('prev-uh-input', 'wi', 'prev-uh-tag')">Verificar</button>
+          </div>
+          <div id="prev-uh-tag" class="plan-tag" style="margin-top:4px;display:inline-block;"></div>
+          <span class="hint">Feature del ciclo previo para comparar.</span>
         </div>
       </div>
     </div>
@@ -371,6 +395,42 @@ async function verifyPlan(idx) {
     if (data.name) { tag.textContent = "✓ " + data.name; tag.className = "plan-tag ok"; }
     else { tag.textContent = "No se encontró el plan"; tag.className = "plan-tag error"; }
   } catch { tag.textContent = "Error al conectar"; tag.className = "plan-tag error"; }
+}
+async function verifyField(inputId, type, tagId) {
+  const val = document.getElementById(inputId).value.trim();
+  const tag = document.getElementById(tagId);
+  if (!val) return;
+  
+  tag.textContent = "Verificando..."; tag.className = "plan-tag ok";
+  
+  let url = "";
+  if (type === 'wi') {
+    url = `/api/wi-name?id=${val}`;
+  } else if (type === 'suite') {
+    // Para suites usamos el primer plan de la lista como referencia
+    const firstPlanId = document.querySelector('[name="plan_ids"]').value.trim();
+    if (!firstPlanId) {
+      tag.textContent = "Ingresá un Test Plan ID primero";
+      tag.className = "plan-tag error";
+      return;
+    }
+    url = `/api/suite-name?plan_id=${firstPlanId}&suite_id=${val}`;
+  }
+  
+  try {
+    const res = await fetch(url);
+    const data = await res.json();
+    if (data.name) {
+      tag.textContent = "✓ " + data.name;
+      tag.className = "plan-tag ok";
+    } else {
+      tag.textContent = (data.error || "No encontrado");
+      tag.className = "plan-tag error";
+    }
+  } catch (e) {
+    tag.textContent = "Error de conexión";
+    tag.className = "plan-tag error";
+  }
 }
 // Agregar primer plan por defecto
 addPlan();

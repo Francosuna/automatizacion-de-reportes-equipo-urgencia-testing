@@ -42,6 +42,9 @@ def get_test_suites(plan_id):
     d = _get(f"{BASE_URL}/testplan/Plans/{plan_id}/suites?api-version=7.0")
     return d.get("value", [])
 
+def get_test_suite(plan_id, suite_id):
+    return _get(f"{BASE_URL}/testplan/Plans/{plan_id}/Suites/{suite_id}?api-version=7.0")
+
 def get_test_points(plan_id, suite_id):
     d = _get(f"{BASE_URL}/testplan/Plans/{plan_id}/Suites/{suite_id}/TestPoint?api-version=7.0")
     return d.get("value", [])
@@ -977,6 +980,30 @@ def plan_name():
     if "_error" in info:
         return jsonify({"error": f"No se encontró el plan {plan_id}"}), 404
     return jsonify({"name": info.get("name","")})
+
+@app.route("/api/suite-name")
+def suite_name():
+    pid = request.args.get("plan_id","")
+    sid = request.args.get("suite_id","")
+    if not pid.isdigit() or not sid.isdigit():
+        return jsonify({"error": "IDs inválidos"}), 400
+    info = get_test_suite(int(pid), int(sid))
+    if "_error" in info:
+        return jsonify({"error": f"No se encontró la suite {sid}"}), 404
+    return jsonify({"name": info.get("name","")})
+
+@app.route("/api/wi-name")
+def wi_name():
+    wid = request.args.get("id","")
+    if not wid.isdigit():
+        return jsonify({"error": "ID de Work Item inválido"}), 400
+    info = get_work_item(int(wid))
+    if "_error" in info:
+        return jsonify({"error": f"No se encontró el Work Item {wid}"}), 404
+    f = info.get("fields", {})
+    title = f.get("System.Title", "Sin título")
+    wi_type = f.get("System.WorkItemType", "Work Item")
+    return jsonify({"name": f"{wi_type}: {title}"})
 
 @app.route("/generate", methods=["POST"])
 def generate():
