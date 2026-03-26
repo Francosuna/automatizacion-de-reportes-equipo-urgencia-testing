@@ -7,7 +7,6 @@ replicando el formato real del equipo.
 import os, json, base64, urllib.request, urllib.error
 from datetime import datetime
 from collections import defaultdict
-import re
 from flask import Flask, render_template, request, Response, jsonify
 from dotenv import load_dotenv
 
@@ -317,25 +316,12 @@ def build_alcance_from_suites(plan_id, suite_inc_id, suite_imp_id):
         for wi in wis:
             f = wi.get("fields", {})
             title = f.get("System.Title", f"Test Case #{wi['id']}")
-            
-            # Mapeo de IDs Reales: extraer [ID] del título si existe
-            real_id = wi["id"]
-            m = re.match(r"^\[(\d+)\]\s*(.*)", title)
-            if m:
-                real_id = m.group(1)
-                title = m.group(2)  # Limpiamos el título para mejor legibilidad
-                
             outcome = outcome_map.get(str(wi["id"]), "notRun")
             
-            # Mapeo de Estado según el requerimiento (#8)
-            if outcome == "passed":
-                state_label = "Cerrado/Exitoso"
-            elif outcome in ("failed", "blocked"):
-                state_label = "Fallido"
-            else:
-                state_label = "Not Run"
+            # Simple mapping para mostrar en "Estado"
+            state_label = "Passed" if outcome == "passed" else ("Failed" if outcome in ("failed", "blocked") else "Not Run")
             
-            target_list.append({"id": real_id, "title": title, "state": state_label})
+            target_list.append({"id": wi["id"], "title": title, "state": state_label})
 
     # Si nos mandan los dos suites en el mismo plan
     if suite_inc_id:
@@ -691,7 +677,10 @@ def generate_report_html(form, demo_data=None):
         inc_data     = build_incident_data(uh_id)
         prev_data    = build_incident_data(prev_uh_id) if prev_uh_id else None
 
-        # Totales globales sumando todos los planes (Aseguramos que los casos de las suites sí se sumen a las métricas globales)
+        # Ya no excluiremos las suites de alcance
+        # Simplemente calculamos totales globales sumando todos los planes
+
+        # Totales globales sumando todos los planes (ya filtrados)
         global_counts = {}
         for pd in plans_data:
             for k, v in pd["counts"].items():
@@ -701,12 +690,6 @@ def generate_report_html(form, demo_data=None):
         fail_all   = global_counts.get("failed",0)
         block_all  = global_counts.get("blocked",0)
         notrun_all = total_all - pass_all - fail_all - block_all
-
-        # Al generar el cuerpo del informe (Sección de Resultados por Suite), excluir las suites que
-        # coincidan con los IDs ingresados en los nuevos campos de incidentes e implementación
-        suites_to_exclude = {suite_inc, suite_imp}
-        for pd in plans_data:
-            pd["suites"] = [s for s in pd["suites"] if s["id"] not in suites_to_exclude]
 
     result_color = "#791F1F" if result and "fallido" in result.lower() else "#3B6D11"
     resp_li = "".join(f'<li style="font-size:13px;color:#3d3d3a;padding:2px 0;">{r}</li>' for r in resps) or '<li style="font-size:13px;color:#888;">—</li>'
