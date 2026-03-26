@@ -56,11 +56,15 @@ def get_work_item_children(wi_id):
     wi = get_work_item(wi_id)
     if not wi or "_error" in wi:
         return []
-    child_ids = [
-        r["url"].split("/")[-1]
-        for r in wi.get("relations", [])
-        if r.get("rel") == "System.LinkTypes.Hierarchy-Forward"
-    ]
+    rel_types = ("System.LinkTypes.Hierarchy-Forward", "System.LinkTypes.Related")
+    child_ids = []
+    for r in wi.get("relations", []):
+        if r.get("rel") in rel_types:
+            parts = r["url"].split("/")
+            if parts:
+                child_ids.append(parts[-1])
+    
+    print(f"[LOG] UH {wi_id} links encontrados: {len(child_ids)} ({child_ids})")
     return get_work_items_batch(child_ids)
 
 # ── Helpers ────────────────────────────────────────────────────
@@ -270,7 +274,7 @@ def build_alcance_data(uh_id):
         item   = {"id": wi_id, "title": title, "state": state}
         if wi_type == "Bug":
             bugs.append(item)
-        elif wi_type in ("Task","User Story","Feature"):
+        elif wi_type in ("Task", "User Story", "Feature", "Requirement", "Issue"):
             tasks.append(item)
 
     return {
