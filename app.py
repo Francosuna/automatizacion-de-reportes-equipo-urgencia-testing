@@ -8,10 +8,6 @@ import os, json, base64, urllib.request, urllib.error
 from datetime import datetime
 from collections import defaultdict
 from flask import Flask, render_template, request, Response, jsonify
-from dotenv import load_dotenv
-
-# Cargar variables (.env)
-load_dotenv()
 
 app = Flask(__name__)
 
@@ -42,9 +38,6 @@ def get_test_suites(plan_id):
     d = _get(f"{BASE_URL}/testplan/Plans/{plan_id}/suites?api-version=7.0")
     return d.get("value", [])
 
-def get_test_suite(plan_id, suite_id):
-    return _get(f"{BASE_URL}/testplan/Plans/{plan_id}/Suites/{suite_id}?api-version=7.0")
-
 def get_test_points(plan_id, suite_id):
     d = _get(f"{BASE_URL}/testplan/Plans/{plan_id}/Suites/{suite_id}/TestPoint?api-version=7.0")
     return d.get("value", [])
@@ -66,13 +59,6 @@ def get_work_item_children(wi_id):
     ids_str = ",".join(child_ids)
     d = _get(f"{BASE_URL}/wit/workitems?ids={ids_str}&$expand=fields&api-version=7.0")
     return d.get("value", [])
-
-def get_work_items_batch(ids):
-    if not ids: return []
-    ids_str = ",".join(str(i) for i in ids)
-    d = _get(f"{BASE_URL}/wit/workitems?ids={ids_str}&$expand=fields&api-version=7.0")
-    return d.get("value", [])
-
 
 # ── Helpers ────────────────────────────────────────────────────
 SEVERITY_LABELS = {
@@ -290,52 +276,6 @@ def build_alcance_data(uh_id):
         "total":   len(bugs) + len(tasks),
         "bugs":    bugs,
         "tasks":   tasks,
-    }
-
-def build_alcance_from_suites(plan_id, suite_inc_id, suite_imp_id):
-    """Obtiene el alcance buscando los Test Points en las suites específicas y extrayendo sus Work Items (Test Cases)."""
-    bugs = []
-    tasks = []
-    
-    # helper para procesar puntos y agruparlos
-    def process_points(p_id, s_id, target_list):
-        if not s_id: return
-        points = get_test_points(p_id, s_id)
-        if not points: return
-        
-        # Obtener los IDs de los Test Cases referenciados en los Test Points
-        tc_ids = [pt.get("testCase", {}).get("id") for pt in points if pt.get("testCase", {}).get("id")]
-        if not tc_ids: return
-        
-        # Obtener los Work Items en batch
-        wis = get_work_items_batch(tc_ids)
-        
-        # Mapear estado por TestCase ID para asociarlo
-        outcome_map = {str(pt["testCase"]["id"]): pt.get("results", {}).get("outcome", "notRun") for pt in points if pt.get("testCase", {}).get("id")}
-        
-        for wi in wis:
-            f = wi.get("fields", {})
-            title = f.get("System.Title", f"Test Case #{wi['id']}")
-            outcome = outcome_map.get(str(wi["id"]), "notRun")
-            
-            # Simple mapping para mostrar en "Estado"
-            state_label = "Passed" if outcome == "passed" else ("Failed" if outcome in ("failed", "blocked") else "Not Run")
-            
-            target_list.append({"id": wi["id"], "title": title, "state": state_label})
-
-    # Si nos mandan los dos suites en el mismo plan
-    if suite_inc_id:
-        process_points(plan_id, suite_inc_id, bugs)
-    
-    if suite_imp_id:
-        process_points(plan_id, suite_imp_id, tasks)
-        
-    return {
-        "uh_id": "",
-        "uh_title": "Alcance extraído de Test Suites",
-        "total": len(bugs) + len(tasks),
-        "bugs": bugs,
-        "tasks": tasks
     }
 
 # ── HTML blocks ────────────────────────────────────────────────
@@ -673,36 +613,16 @@ def generate_report_html(form, demo_data=None):
         uh_id   = int(form.get("uh_id", 0)) if form.get("uh_id","").strip().isdigit() else None
         prev_uh_id = int(form.get("prev_uh_id", 0)) if form.get("prev_uh_id","").strip().isdigit() else None
 
-        # Scope from Suites vs UH
-        suite_inc = int(form.get("suite_incidentes_id", 0)) if form.get("suite_incidentes_id","").strip().isdigit() else None
-        suite_imp = int(form.get("suite_implementacion_id", 0)) if form.get("suite_implementacion_id","").strip().isdigit() else None
-        
-        if suite_inc or suite_imp:
-            # Usamos el primer plan provisto para buscar estas suites
-            alcance_data = build_alcance_from_suites(int(plan_ids_raw[0]), suite_inc, suite_imp)
-        else:
-            alcance_data = build_alcance_data(alcance_id) if alcance_id else None
-
+        alcance_data = build_alcance_data(alcance_id) if alcance_id else None
         inc_data     = build_incident_data(uh_id)
         prev_data    = build_incident_data(prev_uh_id) if prev_uh_id else None
 
-        # Removemos las suites de alcance de los plans_data para no mostrar resultados duplicados
-        suites_to_exclude = {suite_inc, suite_imp}
-        for pd in plans_data:
-            pd["suites"] = [s for s in pd["suites"] if s["id"] not in suites_to_exclude]
-            # Recalculamos subtotales de este plan sin las suites de alcance (usando un dict simple)
-            pd_counts = {}
-            for s in pd["suites"]:
-                for k, v in s["counts"].items():
-                    pd_counts[k] = pd_counts.get(k, 0) + v
-            pd["counts"] = pd_counts
-            pd["total"] = sum(s["total"] for s in pd["suites"])
-
-        # Totales globales sumando todos los planes (ya filtrados)
-        global_counts = {}
+        # Totales globales sumando todos los planes
+        from collections import defaultdict as _dd
+        global_counts = _dd(int)
         for pd in plans_data:
             for k, v in pd["counts"].items():
-                global_counts[k] = global_counts.get(k, 0) + v
+                global_counts[k] += v
         total_all  = sum(pd["total"] for pd in plans_data)
         pass_all   = global_counts.get("passed",0)
         fail_all   = global_counts.get("failed",0)
@@ -980,30 +900,6 @@ def plan_name():
     if "_error" in info:
         return jsonify({"error": f"No se encontró el plan {plan_id}"}), 404
     return jsonify({"name": info.get("name","")})
-
-@app.route("/api/suite-name")
-def suite_name():
-    pid = request.args.get("plan_id","")
-    sid = request.args.get("suite_id","")
-    if not pid.isdigit() or not sid.isdigit():
-        return jsonify({"error": "IDs inválidos"}), 400
-    info = get_test_suite(int(pid), int(sid))
-    if "_error" in info:
-        return jsonify({"error": f"No se encontró la suite {sid}"}), 404
-    return jsonify({"name": info.get("name","")})
-
-@app.route("/api/wi-name")
-def wi_name():
-    wid = request.args.get("id","")
-    if not wid.isdigit():
-        return jsonify({"error": "ID de Work Item inválido"}), 400
-    info = get_work_item(int(wid))
-    if "_error" in info:
-        return jsonify({"error": f"No se encontró el Work Item {wid}"}), 404
-    f = info.get("fields", {})
-    title = f.get("System.Title", "Sin título")
-    wi_type = f.get("System.WorkItemType", "Work Item")
-    return jsonify({"name": f"{wi_type}: {title}"})
 
 @app.route("/generate", methods=["POST"])
 def generate():
