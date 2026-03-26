@@ -548,7 +548,9 @@ def _severity_ref():
 
 # ── Report generator ───────────────────────────────────────────
 def generate_report_html(form, demo_data=None):
-    """Orquestador: recolecta datos y genera el HTML final."""
+    """Orquestador principal que construye el HTML final."""
+    version = form.get("version", "vX")
+    print(f"\n>>> [LOG] Generando reporte para versión: {version}")
     now     = datetime.now().strftime("%d/%m/%Y %H:%M")
     
     if demo_data:
