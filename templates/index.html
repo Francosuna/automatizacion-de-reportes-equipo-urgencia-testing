@@ -246,11 +246,19 @@
           + Agregar Test Plan
         </button>
         <div class="divider"></div>
+        <div class="field" style="margin-bottom:10px;">
+          <label>Alcance desde Test Suites <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:10px;">(Recomendado)</span></label>
+          <span class="hint" style="margin-bottom:8px;display:block;">Si completás estos IDs, el Alcance del informe se extraerá directamente de estas suites, evitando duplicar los datos en los Resultados de Ejecución.</span>
+          <div class="grid-2">
+            <input type="number" name="suite_incidentes_id" placeholder="Suite ID (Incidencias)">
+            <input type="number" name="suite_implementacion_id" placeholder="Suite ID (Nuevas funcionalidades)">
+          </div>
+        </div>
         <div class="grid-2" style="margin-bottom:14px;">
           <div class="field">
-            <label>ID UH de alcance</label>
+            <label>ID UH de alcance <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:10px;">(Opcional / Fallback)</span></label>
             <input type="number" name="alcance_uh_id" placeholder="ej: 90424">
-            <span class="hint">UH con los bugs/tasks del alcance de la versión (se muestra en sección 1)</span>
+            <span class="hint">UH con los bugs/tasks si no se usan las Suites de arriba.</span>
           </div>
           <div class="field">
             <label>ID Feature — incidentes ciclo actual</label>
