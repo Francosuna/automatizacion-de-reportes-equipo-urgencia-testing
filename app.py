@@ -420,32 +420,23 @@ def _alcance_block(alcance_data):
         {alcance_data["uh_title"]} (Total: {alcance_data["total"]} ítems)
       </div>
       
-      <!-- Desplegable de Alcance -->
-      <div style="background:#fff;border-radius:8px;border:1px solid #EDECEA;overflow:hidden;margin-bottom:12px;">
-        <div style="padding:12px 20px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;
-                    background:#FAFAF8;transition:background .15s;"
-             onmouseover="this.style.background='#F1F1EF'" onmouseout="this.style.background='#FAFAF8'"
-             onclick="var box=this.nextElementSibling;if(box.style.display==='none'){{box.style.display='block';}}else{{box.style.display='none';}}">
-          <span style="font-size:12px;font-weight:600;color:{SECONDARY_COLOR};">VER ÍTEMS DE ALCANCE Y NUEVAS FUNCIONALIDADES</span>
-          <span style="font-size:12px;color:#888;">&#9660;</span>
-        </div>
-        <div style="display:none;padding:12px 0;">
-          {f'''
-          <div style="padding:8px 20px;font-size:10px;font-weight:600;color:#888;text-transform:uppercase;">Errores / Bugs ({len(alcance_data["bugs"])})</div>
-          <table style="width:100%;border-collapse:collapse;margin-bottom:16px;">
-            <thead><tr style="background:#F5F4F0;"><th style="padding:7px 14px;text-align:left;font-size:10px;color:#888;">#</th><th style="padding:7px 14px;text-align:left;font-size:10px;color:#888;">Título</th><th style="padding:7px 10px;text-align:center;font-size:10px;color:#888;">Estado</th></tr></thead>
-            <tbody>{bug_rows}</tbody>
-          </table>
-          ''' if alcance_data["bugs"] else ""}
-          
-          {f'''
-          <div style="padding:8px 20px;font-size:10px;font-weight:600;color:#888;text-transform:uppercase;">Nuevas funcionalidades ({len(alcance_data["tasks"])})</div>
-          <table style="width:100%;border-collapse:collapse;">
-            <thead><tr style="background:#F5F4F0;"><th style="padding:7px 14px;text-align:left;font-size:10px;color:#888;">#</th><th style="padding:7px 14px;text-align:left;font-size:10px;color:#888;">Título</th><th style="padding:7px 10px;text-align:center;font-size:10px;color:#888;">Estado</th></tr></thead>
-            <tbody>{task_rows}</tbody>
-          </table>
-          ''' if alcance_data["tasks"] else ""}
-        </div>
+      <!-- Listado abierto de Alcance -->
+      <div>
+        {f'''
+        <div style="padding:8px 0;font-size:12px;font-weight:600;color:#1D546D;text-transform:uppercase;border-bottom:1px solid #EDECEA;margin-bottom:8px;">Errores / Bugs ({len(alcance_data["bugs"])})</div>
+        <table style="width:100%;border-collapse:collapse;margin-bottom:16px;">
+          <thead><tr style="background:#F5F4F0;"><th style="padding:7px 14px;text-align:left;font-size:10px;color:#888;">#</th><th style="padding:7px 14px;text-align:left;font-size:10px;color:#888;">Título</th><th style="padding:7px 10px;text-align:center;font-size:10px;color:#888;">Estado</th></tr></thead>
+          <tbody>{bug_rows}</tbody>
+        </table>
+        ''' if alcance_data["bugs"] else ""}
+        
+        {f'''
+        <div style="padding:8px 0;font-size:12px;font-weight:600;color:#1D546D;text-transform:uppercase;border-bottom:1px solid #EDECEA;margin-bottom:8px;">Nuevas funcionalidades ({len(alcance_data["tasks"])})</div>
+        <table style="width:100%;border-collapse:collapse;">
+          <thead><tr style="background:#F5F4F0;"><th style="padding:7px 14px;text-align:left;font-size:10px;color:#888;">#</th><th style="padding:7px 14px;text-align:left;font-size:10px;color:#888;">Título</th><th style="padding:7px 10px;text-align:center;font-size:10px;color:#888;">Estado</th></tr></thead>
+          <tbody>{task_rows}</tbody>
+        </table>
+        ''' if alcance_data["tasks"] else ""}
       </div>
     </div>"""
 
@@ -686,17 +677,8 @@ def generate_report_html(form, demo_data=None):
         inc_data     = build_incident_data(uh_id)
         prev_data    = build_incident_data(prev_uh_id) if prev_uh_id else None
 
-        # Removemos las suites de alcance de los plans_data para no mostrar resultados duplicados
-        suites_to_exclude = {suite_inc, suite_imp}
-        for pd in plans_data:
-            pd["suites"] = [s for s in pd["suites"] if s["id"] not in suites_to_exclude]
-            # Recalculamos subtotales de este plan sin las suites de alcance (usando un dict simple)
-            pd_counts = {}
-            for s in pd["suites"]:
-                for k, v in s["counts"].items():
-                    pd_counts[k] = pd_counts.get(k, 0) + v
-            pd["counts"] = pd_counts
-            pd["total"] = sum(s["total"] for s in pd["suites"])
+        # Ya no excluiremos las suites de alcance
+        # Simplemente calculamos totales globales sumando todos los planes
 
         # Totales globales sumando todos los planes (ya filtrados)
         global_counts = {}
