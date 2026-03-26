@@ -45,6 +45,13 @@ def get_test_points(plan_id, suite_id):
 def get_work_item(wi_id):
     return _get(f"{BASE_URL}/wit/workitems/{wi_id}?$expand=relations&api-version=7.0")
 
+def get_work_items_batch(wi_ids):
+    if not wi_ids:
+        return []
+    ids_str = ",".join(str(i) for i in wi_ids)
+    d = _get(f"{BASE_URL}/wit/workitems?ids={ids_str}&$expand=fields&api-version=7.0")
+    return d.get("value", [])
+
 def get_work_item_children(wi_id):
     wi = get_work_item(wi_id)
     if not wi or "_error" in wi:
@@ -54,11 +61,7 @@ def get_work_item_children(wi_id):
         for r in wi.get("relations", [])
         if r.get("rel") == "System.LinkTypes.Hierarchy-Forward"
     ]
-    if not child_ids:
-        return []
-    ids_str = ",".join(child_ids)
-    d = _get(f"{BASE_URL}/wit/workitems?ids={ids_str}&$expand=fields&api-version=7.0")
-    return d.get("value", [])
+    return get_work_items_batch(child_ids)
 
 # ── Helpers ────────────────────────────────────────────────────
 SEVERITY_LABELS = {
@@ -327,7 +330,7 @@ def _suite_card(suite, prod):
     </section>"""
 
 def _alcance_block(alcance_data):
-    """Sección 1 — muestra bugs y tasks del alcance en un formato desplegable."""
+    """Sección 1 — muestra todos los bugs y tasks del alcance abiertamente."""
     if not alcance_data or alcance_data["total"] == 0:
         return ""
 
@@ -336,58 +339,50 @@ def _alcance_block(alcance_data):
         style  = f"background:#EAF3DE;color:#3B6D11;" if closed else "background:#E6EBEF;color:#1D546D;"
         return f'<span style="font-size:11px;font-weight:600;padding:2px 10px;border-radius:20px;{style}">{state}</span>'
 
-    bug_rows = "".join(
-        f'<tr style="border-top:1px solid #EDECEA;">'
-        f'<td style="padding:10px 14px;font-size:12px;color:#888;">#{item["id"]}</td>'
-        f'<td style="padding:10px 14px;font-size:13px;color:#3d3d3a;">{item["title"]}</td>'
-        f'<td style="padding:10px 10px;text-align:center;">{state_pill(item["state"])}</td>'
-        f'</tr>'
-        for item in alcance_data["bugs"]
-    )
+    def build_rows(items):
+        return "".join(
+            f'<tr style="border-top:1px solid #EDECEA;">'
+            f'<td style="padding:10px 14px;font-size:12px;color:#888;">#{item["id"]}</td>'
+            f'<td style="padding:10px 14px;font-size:13px;color:#3d3d3a;">{item["title"]}</td>'
+            f'<td style="padding:10px 10px;text-align:center;">{state_pill(item["state"])}</td>'
+            f'</tr>'
+            for item in items
+        )
 
-    task_rows = "".join(
-        f'<tr style="border-top:1px solid #EDECEA;">'
-        f'<td style="padding:10px 14px;font-size:12px;color:#888;">#{item["id"]}</td>'
-        f'<td style="padding:10px 14px;font-size:13px;color:#3d3d3a;">{item["title"]}</td>'
-        f'<td style="padding:10px 10px;text-align:center;">{state_pill(item["state"])}</td>'
-        f'</tr>'
-        for item in alcance_data["tasks"]
-    )
-
-    return f"""
+    html = f"""
     <div style="margin-top:16px;border-top:1px solid #EDECEA;padding-top:16px;">
       <div style="font-size:11px;font-weight:600;color:{ACCENT_COLOR};text-transform:uppercase;letter-spacing:.05em;margin-bottom:12px;">
         {alcance_data["uh_title"]} (Total: {alcance_data["total"]} ítems)
-      </div>
-      
-      <!-- Desplegable de Alcance -->
-      <div style="background:#fff;border-radius:8px;border:1px solid #EDECEA;overflow:hidden;margin-bottom:12px;">
-        <div style="padding:12px 20px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;
-                    background:#FAFAF8;transition:background .15s;"
-             onmouseover="this.style.background='#F1F1EF'" onmouseout="this.style.background='#FAFAF8'"
-             onclick="var box=this.nextElementSibling;if(box.style.display==='none'){{box.style.display='block';}}else{{box.style.display='none';}}">
-          <span style="font-size:12px;font-weight:600;color:{SECONDARY_COLOR};">VER ÍTEMS DE ALCANCE Y NUEVAS FUNCIONALIDADES</span>
-          <span style="font-size:12px;color:#888;">&#9660;</span>
-        </div>
-        <div style="display:none;padding:12px 0;">
-          {f'''
-          <div style="padding:8px 20px;font-size:10px;font-weight:600;color:#888;text-transform:uppercase;">Errores / Bugs ({len(alcance_data["bugs"])})</div>
-          <table style="width:100%;border-collapse:collapse;margin-bottom:16px;">
-            <thead><tr style="background:#F5F4F0;"><th style="padding:7px 14px;text-align:left;font-size:10px;color:#888;">#</th><th style="padding:7px 14px;text-align:left;font-size:10px;color:#888;">Título</th><th style="padding:7px 10px;text-align:center;font-size:10px;color:#888;">Estado</th></tr></thead>
-            <tbody>{bug_rows}</tbody>
-          </table>
-          ''' if alcance_data["bugs"] else ""}
-          
-          {f'''
-          <div style="padding:8px 20px;font-size:10px;font-weight:600;color:#888;text-transform:uppercase;">Nuevas funcionalidades ({len(alcance_data["tasks"])})</div>
-          <table style="width:100%;border-collapse:collapse;">
-            <thead><tr style="background:#F5F4F0;"><th style="padding:7px 14px;text-align:left;font-size:10px;color:#888;">#</th><th style="padding:7px 14px;text-align:left;font-size:10px;color:#888;">Título</th><th style="padding:7px 10px;text-align:center;font-size:10px;color:#888;">Estado</th></tr></thead>
-            <tbody>{task_rows}</tbody>
-          </table>
-          ''' if alcance_data["tasks"] else ""}
-        </div>
-      </div>
-    </div>"""
+      </div>"""
+
+    if alcance_data.get("tasks"):
+        task_rows = build_rows(alcance_data["tasks"])
+        html += f"""
+        <div style="margin-bottom:12px;">
+          <div style="padding:0 0 8px;font-size:11px;font-weight:700;color:#3d3d3a;text-transform:uppercase;">Implementaciones / Nuevas Funcionalidades ({len(alcance_data["tasks"])})</div>
+          <div style="background:#fff;border-radius:8px;border:1px solid #EDECEA;overflow:hidden;">
+            <table style="width:100%;border-collapse:collapse;">
+              <thead><tr style="background:#F5F4F0;"><th style="padding:7px 14px;text-align:left;font-size:10px;color:#888;">#</th><th style="padding:7px 14px;text-align:left;font-size:10px;color:#888;">Título</th><th style="padding:7px 10px;text-align:center;font-size:10px;color:#888;">Estado</th></tr></thead>
+              <tbody>{task_rows}</tbody>
+            </table>
+          </div>
+        </div>"""
+
+    if alcance_data.get("bugs"):
+        bug_rows = build_rows(alcance_data["bugs"])
+        html += f"""
+        <div style="margin-bottom:16px;">
+          <div style="padding:0 0 8px;font-size:11px;font-weight:700;color:#3d3d3a;text-transform:uppercase;">Incidentes planificados ({len(alcance_data["bugs"])})</div>
+          <div style="background:#fff;border-radius:8px;border:1px solid #EDECEA;overflow:hidden;">
+            <table style="width:100%;border-collapse:collapse;">
+              <thead><tr style="background:#F5F4F0;"><th style="padding:7px 14px;text-align:left;font-size:10px;color:#888;">#</th><th style="padding:7px 14px;text-align:left;font-size:10px;color:#888;">Título</th><th style="padding:7px 10px;text-align:center;font-size:10px;color:#888;">Estado</th></tr></thead>
+              <tbody>{bug_rows}</tbody>
+            </table>
+          </div>
+        </div>"""
+
+    html += "</div>"
+    return html
 
 def _incidents_block(inc_data, section_num="4.1", title="Incidentes detectados durante las pruebas del ciclo", bug_label="Detalle de bugs"):
     if not inc_data or inc_data["total"] == 0:
@@ -680,45 +675,97 @@ def generate_report_html(form, demo_data=None):
         bug_label="Detalle de bugs detectados"
     )
 
-    # Sección 4.2 / 4.3 — Ciclo anterior: corregidos y pendientes
+    # Sección 4.2 / 4.2.1 / 4.3 — Ciclo anterior + Incidentes de alcance no solucionados
     prev_sections = ""
+    
+    # 4.2 Paquete de incidentes corregidos (ciclo anterior)
     if prev_data and prev_data["total"] > 0:
         resueltos  = [i for i in prev_data["incidents"] if i["state"].lower() in ("closed","resolved","done","cerrado","resuelto")]
-        pendientes = [i for i in prev_data["incidents"] if i["state"].lower() not in ("closed","resolved","done","cerrado","resuelto")]
-
         if resueltos:
             prev_res = dict(prev_data)
             prev_res["incidents"] = resueltos
             prev_res["total"] = len(resueltos)
-            by_sev_r = defaultdict(list)
-            by_mod_r = defaultdict(lambda: defaultdict(int))
+            by_sev_r = {}
+            by_mod_r = {}
             for i in resueltos:
-                by_sev_r[i["sev"]].append(i)
-                by_mod_r[i["module"]][i["sev"]] += 1
-            prev_res["by_sev"] = dict(by_sev_r)
-            prev_res["by_module"] = {m:dict(v) for m,v in by_mod_r.items()}
+                s, m = i["sev"], i["module"]
+                if s not in by_sev_r: by_sev_r[s] = []
+                by_sev_r[s].append(i)
+                if m not in by_mod_r: by_mod_r[m] = {}
+                if s not in by_mod_r[m]: by_mod_r[m][s] = 0
+                by_mod_r[m][s] += 1
+            prev_res["by_sev"] = by_sev_r
+            prev_res["by_module"] = by_mod_r
             prev_sections += _incidents_block(
                 prev_res,
                 section_num="4.2",
-                title=f"Paquete de incidentes corregidas — Versión anterior (Ciclo {ciclo} MVP 2) de SALUS Web",
+                title=f"Paquete de incidentes corregidos — Versión anterior ({prev_data.get('uh_title','')})",
                 bug_label="Detalle de bugs corregidos"
             )
 
+    # 4.2.1 Ítems entregados pero no solucionados (del alcance ACTUAL)
+    if alcance_data and isinstance(alcance_data.get("bugs"), list):
+        bugs_list = alcance_data["bugs"]
+        unsolved_ids = [b["id"] for b in bugs_list if b.get("state","").lower() not in ("closed","resolved","done","cerrado","resuelto")]
+        if unsolved_ids:
+            unsolved_wis = get_work_items_batch(unsolved_ids)
+            unsolved_incidents = []
+            for wi in unsolved_wis:
+                f = wi.get("fields",{})
+                # Extraer criticidad desde el WorkItem completo (ya que _alcance_data original no lo trae)
+                sev = _norm_sev(f.get("Microsoft.VSTS.Common.Severity") or f.get("Microsoft.VSTS.Common.Priority"))
+                title = f.get("System.Title","Sin título")
+                state = f.get("System.State","")
+                # Al ser de alcance, no tenemos un módulo específico (a menos que iteremos el parent), le ponemos "Alcance Planificado"
+                unsolved_incidents.append({"id":wi["id"],"title":title,"state":state,"sev":sev,"module":"Alcance Planificado"})
+            
+            by_sev_u = {}
+            by_mod_u = {}
+            for i in unsolved_incidents:
+                s, m = i["sev"], i["module"]
+                if s not in by_sev_u: by_sev_u[s] = []
+                by_sev_u[s].append(i)
+                if m not in by_mod_u: by_mod_u[m] = {}
+                if s not in by_mod_u[m]: by_mod_u[m][s] = 0
+                by_mod_u[m][s] += 1
+                
+            unsolved_inc_data = {
+                "total": len(unsolved_incidents),
+                "uh_title": alcance_data["uh_title"],
+                "incidents": sorted(unsolved_incidents, key=lambda x: _sev_order(x.get("sev","Bajo"))),
+                "by_sev": by_sev_u,
+                "by_module": by_mod_u,
+            }
+            prev_sections += _incidents_block(
+                unsolved_inc_data,
+                section_num="4.2.1",
+                title=f"Ítems entregados pero no solucionados del ciclo actual ({version})",
+                bug_label="Detalle de bugs no solucionados"
+            )
+
+    # 4.3 Incidencias pendientes de corrección (ciclo anterior)
+    if prev_data and isinstance(prev_data.get("incidents"), list) and prev_data["total"] > 0:
+        inc_list = prev_data["incidents"]
+        pendientes = [i for i in inc_list if i.get("state","").lower() not in ("closed","resolved","done","cerrado","resuelto")]
         if pendientes:
             prev_pend = dict(prev_data)
             prev_pend["incidents"] = pendientes
             prev_pend["total"] = len(pendientes)
-            by_sev_p = defaultdict(list)
-            by_mod_p = defaultdict(lambda: defaultdict(int))
+            by_sev_p = {}
+            by_mod_p = {}
             for i in pendientes:
-                by_sev_p[i["sev"]].append(i)
-                by_mod_p[i["module"]][i["sev"]] += 1
-            prev_pend["by_sev"] = dict(by_sev_p)
-            prev_pend["by_module"] = {m:dict(v) for m,v in by_mod_p.items()}
+                s, m = i["sev"], i["module"]
+                if s not in by_sev_p: by_sev_p[s] = []
+                by_sev_p[s].append(i)
+                if m not in by_mod_p: by_mod_p[m] = {}
+                if s not in by_mod_p[m]: by_mod_p[m][s] = 0
+                by_mod_p[m][s] += 1
+            prev_pend["by_sev"] = by_sev_p
+            prev_pend["by_module"] = by_mod_p
             prev_sections += _incidents_block(
                 prev_pend,
                 section_num="4.3",
-                title=f"Incidencias pendientes de corrección de la Versión anterior (Ciclo {ciclo} MVP 2) de SALUS Web",
+                title=f"Incidencias pendientes de corrección de la Versión anterior ({prev_data.get('uh_title','')})",
                 bug_label="Detalle de bugs pendientes"
             )
 
