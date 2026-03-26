@@ -686,6 +686,7 @@ def generate_report_html(form, demo_data=None):
         inc_data     = build_incident_data(uh_id)
         prev_data    = build_incident_data(prev_uh_id) if prev_uh_id else None
 
+<<<<<<< HEAD
         # Removemos las suites de alcance de los plans_data para no mostrar resultados duplicados
         suites_to_exclude = {suite_inc, suite_imp}
         for pd in plans_data:
@@ -697,6 +698,10 @@ def generate_report_html(form, demo_data=None):
                     pd_counts[k] = pd_counts.get(k, 0) + v
             pd["counts"] = pd_counts
             pd["total"] = sum(s["total"] for s in pd["suites"])
+=======
+        # Ya no excluiremos las suites de alcance
+        # Simplemente calculamos totales globales sumando todos los planes
+>>>>>>> parent of dbc7719 (aaa)
 
         # Totales globales sumando todos los planes (ya filtrados)
         global_counts = {}
