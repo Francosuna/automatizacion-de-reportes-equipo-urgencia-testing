@@ -845,6 +845,7 @@ def generate_report_html(form, demo_data=None):
         }
         if resueltos:
             prev_res = dict(prev_data_42)
+            prev_res["uh_title"] = alcance_data.get("uh_title") if alcance_data else prev_data_42.get("uh_title", "")
             prev_res["incidents"] = resueltos
             prev_res["total"] = len(resueltos)
             by_sev_r = {}
