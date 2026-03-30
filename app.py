@@ -274,8 +274,9 @@ def build_alcance_data(uh_id):
         item   = {"id": wi_id, "title": title, "state": state}
         if wi_type == "Bug":
             bugs.append(item)
-        elif wi_type in ("Task", "User Story", "Feature", "Requirement", "Issue"):
+        elif wi_type in ("Task", "Requirement", "Issue"):
             tasks.append(item)
+        # Ignorar UH/Feature en la lista de implementaciones/nuevas funcionalidades
 
     return {
         "uh_id":   uh_id,
@@ -753,7 +754,15 @@ def generate_report_html(form, demo_data=None):
 
         alcance_data = build_alcance_data(alcance_id) if alcance_id else None
         inc_data     = build_incident_data(uh_id)
-        prev_data    = build_incident_data(prev_uh_id) if prev_uh_id else None
+        # 4.2: si no hay prev_uh_id, usar UH de alcance como fallback
+        if prev_uh_id:
+            prev_data_42 = build_incident_data(prev_uh_id)
+        elif alcance_id:
+            prev_data_42 = build_incident_data(alcance_id)
+        else:
+            prev_data_42 = None
+        # 4.3: sólo si hay ciclo anterior explícito
+        prev_data_43 = build_incident_data(prev_uh_id) if prev_uh_id else None
 
         # Totales globales sumando todos los planes
         from collections import defaultdict as _dd
@@ -822,17 +831,17 @@ def generate_report_html(form, demo_data=None):
     prev_sections = ""
     
     # 4.2 Paquete de incidentes corregidos (ciclo anterior)
-    if prev_data and prev_data.get("total",0) > 0:
-        resueltos  = [i for i in prev_data["incidents"] if i["state"].lower() in ("closed","resolved","done","cerrado","resuelto")]
+    if prev_data_42 and prev_data_42.get("total",0) > 0:
+        resueltos  = [i for i in prev_data_42["incidents"] if i["state"].lower() in ("closed","resolved","done","cerrado","resuelto")]
         prev_res = {
-            "uh_title": prev_data.get("uh_title", ""),
+            "uh_title": prev_data_42.get("uh_title", ""),
             "incidents": [],
             "total": 0,
             "by_sev": {},
             "by_module": {}
         }
         if resueltos:
-            prev_res = dict(prev_data)
+            prev_res = dict(prev_data_42)
             prev_res["incidents"] = resueltos
             prev_res["total"] = len(resueltos)
             by_sev_r = {}
@@ -851,7 +860,7 @@ def generate_report_html(form, demo_data=None):
         prev_sections += _incidents_block(
             prev_res,
             section_num="4.2",
-            title=f"Paquete de incidentes corregidos — Versión anterior ({prev_data.get('uh_title','')})",
+            title=f"Paquete de incidentes corregidos — Versión anterior ({prev_data_42.get('uh_title','') if prev_data_42 else ''})",
             bug_label="Detalle de bugs corregidos"
         )
     else:
@@ -904,20 +913,19 @@ def generate_report_html(form, demo_data=None):
             )
 
     # 4.3 Incidencias pendientes de corrección (ciclo anterior)
-    if prev_data and isinstance(prev_data.get("incidents"), list):
-        inc_list = prev_data["incidents"]
+    pendientes = []
+    prev_pend = {
+        "uh_title": "",
+        "incidents": [],
+        "total": 0,
+        "by_sev": {},
+        "by_module": {}
+    }
+
+    if prev_data_43 and isinstance(prev_data_43.get("incidents"), list):
+        inc_list = prev_data_43["incidents"]
         pendientes = [i for i in inc_list if i.get("state","").lower() not in ("closed","resolved","done","cerrado","resuelto")]
-        prev_pend = dict(prev_data)
-        prev_pend["uh_title"] = prev_data.get("uh_title","")
-    else:
-        pendientes = []
-        prev_pend = {
-            "uh_title": "",
-            "incidents": [],
-            "total": 0,
-            "by_sev": {},
-            "by_module": {}
-        }
+        prev_pend["uh_title"] = prev_data_43.get("uh_title", "")
 
     if pendientes:
         prev_pend["incidents"] = pendientes
@@ -935,7 +943,6 @@ def generate_report_html(form, demo_data=None):
 
         prev_pend["by_sev"] = by_sev_p
         prev_pend["by_module"] = by_mod_p
-        prev_pend["total"] = len(pendientes)
 
     prev_sections += _incidents_block(
         prev_pend,
