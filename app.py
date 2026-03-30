@@ -484,43 +484,44 @@ def _incidents_block(inc_data, section_num="4.1", title="Incidentes detectados d
       <script>
       (function(){{
         // Plugin para mostrar porcentajes dentro del donut
-        const percentagePlugin = {{
+        var percentagePlugin = {{
           id: 'textCenter',
-          afterDatasetsDraw(chart) {{
-            const {{ctx, data, chartArea: {{left, top, width, height}}}} = chart;
-            ctx.save();
+          afterDatasetsDraw: function(chart) {{
+            var ctx = chart.ctx;
+            var centerX = chart.chartArea.left + chart.chartArea.width / 2;
+            var centerY = chart.chartArea.top + chart.chartArea.height / 2;
+            var radius = Math.min(chart.chartArea.width, chart.chartArea.height) / 2;
+            var innerRadius = radius * 0.6;
             
-            const centerX = left + width / 2;
-            const centerY = top + height / 2;
-            const radius = Math.min(width, height) / 2;
-            const innerRadius = radius * 0.6; // cutout porcentaje
+            var data = chart.data.datasets[0].data;
+            var total = data.reduce(function(a, b) {{ return a + b; }}, 0);
             
-            data.datasets[0].data.forEach((value, index) => {{
-              const total = data.datasets[0].data.reduce((a, b) => a + b, 0);
-              const percentage = Math.round(value / total * 100);
+            var angle = 0;
+            for (var i = 0; i < data.length; i++) {{
+              var value = data[i];
+              var percentage = Math.round(value / total * 100);
               
-              // Calcular ángulo para posicionar el % en el medio de cada sección
-              let angle = 0;
-              for (let i = 0; i < index; i++) {{
-                angle += (data.datasets[0].data[i] / total) * 2 * Math.PI;
-              }}
-              angle += (value / total) * Math.PI; // Mitad de la sección
+              // Ángulo medio de la sección
+              var sectionAngle = (value / total) * 2 * Math.PI;
+              var midAngle = angle + sectionAngle / 2;
               
-              // Posición del texto (entre inner y outer radius)
-              const x = centerX + Math.cos(angle - Math.PI / 2) * ((innerRadius + radius) / 2);
-              const y = centerY + Math.sin(angle - Math.PI / 2) * ((innerRadius + radius) / 2);
+              // Posición del texto
+              var x = centerX + Math.cos(midAngle - Math.PI / 2) * ((innerRadius + radius) / 2);
+              var y = centerY + Math.sin(midAngle - Math.PI / 2) * ((innerRadius + radius) / 2);
               
               // Dibujar porcentaje
-              ctx.font = 'bold 13px sans-serif';
+              ctx.save();
+              ctx.font = 'bold 14px Arial';
               ctx.fillStyle = '#ffffff';
               ctx.textAlign = 'center';
               ctx.textBaseline = 'middle';
-              ctx.shadowColor = 'rgba(0,0,0,0.3)';
-              ctx.shadowBlur = 4;
+              ctx.shadowColor = 'rgba(0,0,0,0.5)';
+              ctx.shadowBlur = 3;
               ctx.fillText(percentage + '%', x, y);
-              ctx.shadowColor = 'transparent';
-            }});
-            ctx.restore();
+              ctx.restore();
+              
+              angle += sectionAngle;
+            }}
           }}
         }};
         
@@ -553,19 +554,7 @@ def _incidents_block(inc_data, section_num="4.1", title="Incidentes detectados d
             usePointStyle:true,
             pointStyle:'rectRounded',
             boxWidth:14,
-            boxHeight:10,
-            generateLabels: function(chart) {{
-              const original = Chart.defaults.plugins.legend.labels.generateLabels(chart);
-              return original.map(label => {{
-                const text = label.text;
-                // Truncar etiquetas largas (módulos con nombres largos)
-                if(text.length > 35) {{
-                  label.text = text.substring(0, 32) + '...';
-                  label.fullText = text; // Guardar texto completo para tooltip
-                }}
-                return label;
-              }});
-            }}
+            boxHeight:10
           }}
         }};
         
@@ -583,17 +572,17 @@ def _incidents_block(inc_data, section_num="4.1", title="Incidentes detectados d
               hoverOffset:8
             }}]
           }},
-          plugins:[percentagePlugin],
           options:{{
             responsive:true,
             maintainAspectRatio:true,
             plugins:{{
               tooltip:ttOpts,
-              legend:legOpts
+              legend:legOpts,
+              percentagePlugin: percentagePlugin
             }},
-            cutout:'60%',
-            animation:{{animateRotate:true,duration:600}}
-          }}
+            cutout:'60%'
+          }},
+          plugins:[percentagePlugin]
         }});
         
         // Chart de módulos
@@ -610,17 +599,17 @@ def _incidents_block(inc_data, section_num="4.1", title="Incidentes detectados d
               hoverOffset:8
             }}]
           }},
-          plugins:[percentagePlugin],
           options:{{
             responsive:true,
             maintainAspectRatio:true,
             plugins:{{
               tooltip:ttOpts,
-              legend:legOpts
+              legend:legOpts,
+              percentagePlugin: percentagePlugin
             }},
-            cutout:'60%',
-            animation:{{animateRotate:true,duration:600}}
-          }}
+            cutout:'60%'
+          }},
+          plugins:[percentagePlugin]
         }});
       }})();
       </script>
