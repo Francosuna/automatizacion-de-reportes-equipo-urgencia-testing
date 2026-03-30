@@ -860,8 +860,7 @@ def generate_report_html(form, demo_data=None):
             prev_res["by_module"] = by_mod_r
             prev_res["total"] = len(resueltos)
 
-        prev_title_42 = (alcance_data.get('uh_title') if alcance_data and alcance_data.get('uh_title')
-                         else (prev_data_42.get('uh_title') if prev_data_42 else ''))
+        prev_title_42 = alcance_data.get('uh_title') if alcance_data and alcance_data.get('uh_title') else (prev_data_42.get('uh_title') if prev_data_42 else '')
         prev_sections += _incidents_block(
             prev_res,
             section_num="4.2",
