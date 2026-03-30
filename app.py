@@ -754,14 +754,17 @@ def generate_report_html(form, demo_data=None):
 
         alcance_data = build_alcance_data(alcance_id) if alcance_id else None
         inc_data     = build_incident_data(uh_id)
-        # 4.2: si no hay prev_uh_id, usar UH de alcance como fallback
+        # 4.2: ciclo anterior preferido, fallback a UH de alcance cuando no trae datos
         if prev_uh_id:
             prev_data_42 = build_incident_data(prev_uh_id)
+            if prev_data_42 and prev_data_42.get("total",0) == 0 and alcance_id:
+                # Si el ciclo anterior no tiene incidentes, mostrar data de alcance en 4.2
+                prev_data_42 = build_incident_data(alcance_id)
         elif alcance_id:
             prev_data_42 = build_incident_data(alcance_id)
         else:
             prev_data_42 = None
-        # 4.3: sólo si hay ciclo anterior explícito
+        # 4.3: pendiente de corrección solo a partir del ciclo anterior real
         prev_data_43 = build_incident_data(prev_uh_id) if prev_uh_id else None
 
         # Totales globales sumando todos los planes
@@ -857,10 +860,12 @@ def generate_report_html(form, demo_data=None):
             prev_res["by_module"] = by_mod_r
             prev_res["total"] = len(resueltos)
 
+        prev_title_42 = (alcance_data.get('uh_title') if alcance_data and alcance_data.get('uh_title')
+                         else (prev_data_42.get('uh_title') if prev_data_42 else ''))
         prev_sections += _incidents_block(
             prev_res,
             section_num="4.2",
-            title=f"Paquete de incidentes corregidos — Versión anterior ({prev_data_42.get('uh_title','') if prev_data_42 else ''})",
+            title=f"Paquete de incidentes corregidos — Versión anterior ({prev_title_42})",
             bug_label="Detalle de bugs corregidos"
         )
     else:
