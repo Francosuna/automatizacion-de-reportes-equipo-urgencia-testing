@@ -483,11 +483,145 @@ def _incidents_block(inc_data, section_num="4.1", title="Incidentes detectados d
       <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
       <script>
       (function(){{
-        var ttCb = {{label:function(ctx){{var sum=ctx.chart.data.datasets[0].data.reduce(function(a,b){{return a+b}},0);var p=Math.round(ctx.parsed/sum*100);return ' '+ctx.label+': '+p+'%';}}}};
-        var ttOpts = {{enabled:true,backgroundColor:'rgba(30,30,30,.9)',titleFont:{{size:12,weight:'600'}},bodyFont:{{size:12}},padding:10,cornerRadius:8,callbacks:ttCb}};
-        var legOpts = {{position:'bottom',labels:{{font:{{size:12,weight:'500'}},padding:14,usePointStyle:true,pointStyle:'rectRounded',boxWidth:14,boxHeight:10}}}};
-        new Chart(document.getElementById('{chart_id}_s'),{{type:'doughnut',data:{{labels:{sev_labels},datasets:[{{data:{sev_vals},backgroundColor:{sev_cols},borderWidth:3,borderColor:'#fff',hoverBorderWidth:4,hoverOffset:8}}]}},options:{{responsive:true,maintainAspectRatio:true,plugins:{{tooltip:ttOpts,legend:legOpts}},cutout:'60%',animation:{{animateRotate:true,duration:600}}}}}});
-        new Chart(document.getElementById('{chart_id}_m'),{{type:'doughnut',data:{{labels:{mod_labels},datasets:[{{data:{mod_vals},backgroundColor:{mod_cols},borderWidth:3,borderColor:'#fff',hoverBorderWidth:4,hoverOffset:8}}]}},options:{{responsive:true,maintainAspectRatio:true,plugins:{{tooltip:ttOpts,legend:legOpts}},cutout:'60%',animation:{{animateRotate:true,duration:600}}}}}});
+        // Plugin para mostrar porcentajes dentro del donut
+        const percentagePlugin = {{
+          id: 'textCenter',
+          afterDatasetsDraw(chart) {{
+            const {{ctx, data, chartArea: {{left, top, width, height}}}} = chart;
+            ctx.save();
+            
+            const centerX = left + width / 2;
+            const centerY = top + height / 2;
+            const radius = Math.min(width, height) / 2;
+            const innerRadius = radius * 0.6; // cutout porcentaje
+            
+            data.datasets[0].data.forEach((value, index) => {{
+              const total = data.datasets[0].data.reduce((a, b) => a + b, 0);
+              const percentage = Math.round(value / total * 100);
+              
+              // Calcular ángulo para posicionar el % en el medio de cada sección
+              let angle = 0;
+              for (let i = 0; i < index; i++) {{
+                angle += (data.datasets[0].data[i] / total) * 2 * Math.PI;
+              }}
+              angle += (value / total) * Math.PI; // Mitad de la sección
+              
+              // Posición del texto (entre inner y outer radius)
+              const x = centerX + Math.cos(angle - Math.PI / 2) * ((innerRadius + radius) / 2);
+              const y = centerY + Math.sin(angle - Math.PI / 2) * ((innerRadius + radius) / 2);
+              
+              // Dibujar porcentaje
+              ctx.font = 'bold 13px sans-serif';
+              ctx.fillStyle = '#ffffff';
+              ctx.textAlign = 'center';
+              ctx.textBaseline = 'middle';
+              ctx.shadowColor = 'rgba(0,0,0,0.3)';
+              ctx.shadowBlur = 4;
+              ctx.fillText(percentage + '%', x, y);
+              ctx.shadowColor = 'transparent';
+            }});
+            ctx.restore();
+          }}
+        }};
+        
+        // Tooltip mejorado con cantidad + porcentaje
+        var ttCb = {{
+          label: function(ctx) {{
+            var sum = ctx.chart.data.datasets[0].data.reduce(function(a,b){{return a+b}},0);
+            var count = ctx.parsed;
+            var p = Math.round(count / sum * 100);
+            return ' ' + ctx.label + ': ' + count + ' incidentes (' + p + '%)';
+          }}
+        }};
+        
+        var ttOpts = {{
+          enabled:true,
+          backgroundColor:'rgba(30,30,30,.95)',
+          titleFont:{{size:12,weight:'600'}},
+          bodyFont:{{size:11}},
+          padding:10,
+          cornerRadius:8,
+          callbacks:ttCb
+        }};
+        
+        // Leyenda con etiquetas truncadas para módulos largos
+        var legOpts = {{
+          position:'bottom',
+          labels:{{
+            font:{{size:12,weight:'500'}},
+            padding:14,
+            usePointStyle:true,
+            pointStyle:'rectRounded',
+            boxWidth:14,
+            boxHeight:10,
+            generateLabels: function(chart) {{
+              const original = Chart.defaults.plugins.legend.labels.generateLabels(chart);
+              return original.map(label => {{
+                const text = label.text;
+                // Truncar etiquetas largas (módulos con nombres largos)
+                if(text.length > 35) {{
+                  label.text = text.substring(0, 32) + '...';
+                  label.fullText = text; // Guardar texto completo para tooltip
+                }}
+                return label;
+              }});
+            }}
+          }}
+        }};
+        
+        // Chart de severidad (criticidad)
+        new Chart(document.getElementById('{chart_id}_s'),{{
+          type:'doughnut',
+          data:{{
+            labels:{sev_labels},
+            datasets:[{{
+              data:{sev_vals},
+              backgroundColor:{sev_cols},
+              borderWidth:3,
+              borderColor:'#fff',
+              hoverBorderWidth:4,
+              hoverOffset:8
+            }}]
+          }},
+          plugins:[percentagePlugin],
+          options:{{
+            responsive:true,
+            maintainAspectRatio:true,
+            plugins:{{
+              tooltip:ttOpts,
+              legend:legOpts
+            }},
+            cutout:'60%',
+            animation:{{animateRotate:true,duration:600}}
+          }}
+        }});
+        
+        // Chart de módulos
+        new Chart(document.getElementById('{chart_id}_m'),{{
+          type:'doughnut',
+          data:{{
+            labels:{mod_labels},
+            datasets:[{{
+              data:{mod_vals},
+              backgroundColor:{mod_cols},
+              borderWidth:3,
+              borderColor:'#fff',
+              hoverBorderWidth:4,
+              hoverOffset:8
+            }}]
+          }},
+          plugins:[percentagePlugin],
+          options:{{
+            responsive:true,
+            maintainAspectRatio:true,
+            plugins:{{
+              tooltip:ttOpts,
+              legend:legOpts
+            }},
+            cutout:'60%',
+            animation:{{animateRotate:true,duration:600}}
+          }}
+        }});
       }})();
       </script>
       <div style="padding:12px 20px 4px;font-size:10px;font-weight:500;color:#888;text-transform:uppercase;letter-spacing:.05em;">Porcentaje de incidencias detectadas por módulo / funcionalidad</div>
