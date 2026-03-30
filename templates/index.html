@@ -771,7 +771,6 @@
       <div class="header-eyebrow">Informe Final de Pruebas</div>
       <h1>Generador de<br>informes QA</h1>
       <p>Completá el formulario, conectamos con Azure DevOps y descargás el informe listo para exportar a PDF.</p>
-      <div style="font-size: 10px; color: var(--muted); margin-top: 10px; opacity: 0.6;">Build: 2026-03-26-v2-US-Mode</div>
     </div>
 
     <form id="report-form">
@@ -933,19 +932,31 @@
           <div class="grid-2" style="margin-bottom:14px;">
             <div class="field">
               <label>ID UH de alcance</label>
-              <input type="number" name="alcance_uh_id" placeholder="ej: 90424">
+              <div style="display:flex;gap:8px;align-items:flex-start;">
+                <input type="number" name="alcance_uh_id" placeholder="ej: 90424" style="flex:1;">
+                <button type="button" class="plan-verify" onclick="verifyAlcanceUH()" style="margin-top:0;">Verificar</button>
+              </div>
+              <div class="plan-tag" id="alcance-tag"></div>
               <span class="hint">UH con los bugs/tasks del alcance de la versión (se muestra en sección 1)</span>
             </div>
             <div class="field">
               <label>ID Feature — incidentes ciclo actual</label>
-              <input type="number" name="uh_id" placeholder="ej: 90425">
+              <div style="display:flex;gap:8px;align-items:flex-start;">
+                <input type="number" name="uh_id" placeholder="ej: 90425" style="flex:1;">
+                <button type="button" class="plan-verify" onclick="verifyIncidentFeature()" style="margin-top:0;">Verificar</button>
+              </div>
+              <div class="plan-tag" id="incident-tag"></div>
               <span class="hint">Feature/UH con los bugs detectados en este ciclo</span>
             </div>
           </div>
           <div class="field">
             <label>ID Feature — ciclo anterior <span
                 style="font-weight:400;text-transform:none;letter-spacing:0;font-size:10px;">(opcional)</span></label>
-            <input type="number" name="prev_uh_id" placeholder="ej: 88300">
+            <div style="display:flex;gap:8px;align-items:flex-start;">
+              <input type="number" name="prev_uh_id" placeholder="ej: 88300" style="flex:1;">
+              <button type="button" class="plan-verify" onclick="verifyPrevCycleUH()" style="margin-top:0;">Verificar</button>
+            </div>
+            <div class="plan-tag" id="prev-tag"></div>
             <span class="hint">Feature del ciclo previo para comparar corregidos vs pendientes</span>
           </div>
         </div>
@@ -1052,6 +1063,71 @@
         else { tag.textContent = "No se encontró el plan"; tag.className = "plan-tag error"; }
       } catch { tag.textContent = "Error al conectar"; tag.className = "plan-tag error"; }
     }
+    
+    // ── Verificación de Work Items (alcance, incidentes, ciclo anterior) ──
+    async function verifyAlcanceUH() {
+      const id = document.querySelector('[name="alcance_uh_id"]').value.trim();
+      const tag = document.getElementById("alcance-tag");
+      if (!id) return;
+      tag.textContent = "Verificando..."; tag.className = "plan-tag ok";
+      try {
+        const res = await fetch(`/api/workitem-name?id=${id}`);
+        const data = await res.json();
+        if (data.name) { 
+          tag.textContent = "✓ " + data.name; 
+          tag.className = "plan-tag ok"; 
+        } else { 
+          tag.textContent = `✗ ${data.type || 'Work Item'} #${id} no existe en Azure DevOps`; 
+          tag.className = "plan-tag error"; 
+        }
+      } catch { 
+        tag.textContent = "Error al conectar"; 
+        tag.className = "plan-tag error"; 
+      }
+    }
+    
+    async function verifyIncidentFeature() {
+      const id = document.querySelector('[name="uh_id"]').value.trim();
+      const tag = document.getElementById("incident-tag");
+      if (!id) return;
+      tag.textContent = "Verificando..."; tag.className = "plan-tag ok";
+      try {
+        const res = await fetch(`/api/workitem-name?id=${id}`);
+        const data = await res.json();
+        if (data.name) { 
+          tag.textContent = "✓ " + data.name; 
+          tag.className = "plan-tag ok"; 
+        } else { 
+          tag.textContent = `✗ ${data.type || 'Work Item'} #${id} no existe en Azure DevOps`; 
+          tag.className = "plan-tag error"; 
+        }
+      } catch { 
+        tag.textContent = "Error al conectar"; 
+        tag.className = "plan-tag error"; 
+      }
+    }
+    
+    async function verifyPrevCycleUH() {
+      const id = document.querySelector('[name="prev_uh_id"]').value.trim();
+      const tag = document.getElementById("prev-tag");
+      if (!id) return;
+      tag.textContent = "Verificando..."; tag.className = "plan-tag ok";
+      try {
+        const res = await fetch(`/api/workitem-name?id=${id}`);
+        const data = await res.json();
+        if (data.name) { 
+          tag.textContent = "✓ " + data.name; 
+          tag.className = "plan-tag ok"; 
+        } else { 
+          tag.textContent = `✗ ${data.type || 'Work Item'} #${id} no existe en Azure DevOps`; 
+          tag.className = "plan-tag error"; 
+        }
+      } catch { 
+        tag.textContent = "Error al conectar"; 
+        tag.className = "plan-tag error"; 
+      }
+    }
+    
     // Agregar primer plan por defecto
     addPlan();
     // Poner el ID por defecto en el primer plan

@@ -354,36 +354,36 @@ def _alcance_block(alcance_data):
         )
 
     html = f"""
-    <div style="margin-top:16px;border-top:1px solid #EDECEA;padding-top:16px;">
-      <div style="font-size:11px;font-weight:600;color:{ACCENT_COLOR};text-transform:uppercase;letter-spacing:.05em;margin-bottom:12px;">
+    <div style="margin-top:12px; border-top: 1px solid #EDECEA; padding-top: 12px;">
+      <div style="font-size:11px; font-weight:600; color:{ACCENT_COLOR}; text-transform:uppercase; letter-spacing:.05em; margin-bottom:12px;">
         {alcance_data["uh_title"]} (Total: {alcance_data["total"]} ítems)
       </div>"""
 
-    if alcance_data.get("tasks"):
-        task_rows = build_rows(alcance_data["tasks"])
-        html += f"""
-        <div style="margin-bottom:12px;">
-          <div style="padding:0 0 8px;font-size:11px;font-weight:700;color:#3d3d3a;text-transform:uppercase;">Implementaciones / Nuevas Funcionalidades ({len(alcance_data["tasks"])})</div>
-          <div style="background:#fff;border-radius:8px;border:1px solid #EDECEA;overflow:hidden;">
-            <table style="width:100%;border-collapse:collapse;">
-              <thead><tr style="background:#F5F4F0;"><th style="padding:7px 14px;text-align:left;font-size:10px;color:#888;">#</th><th style="padding:7px 14px;text-align:left;font-size:10px;color:#888;">Título</th><th style="padding:7px 10px;text-align:center;font-size:10px;color:#888;">Estado</th></tr></thead>
-              <tbody>{task_rows}</tbody>
+    def _collapsible_table(title, count, items):
+        if not items: return ""
+        rows = build_rows(items)
+        return f"""
+        <details style="margin-bottom:10px; border:1px solid #EDECEA; border-radius:10px; background:#fff; overflow:hidden;" open>
+          <summary style="padding:10px 14px; background:#FAFAF8; font-size:11px; font-weight:700; color:#3d3d3a; text-transform:uppercase; cursor:pointer; list-style:none; display:flex; justify-content:space-between; align-items:center;">
+            <span>{title} ({count})</span>
+            <span style="font-size:10px; color:#888;">[Click para contraer/expandir]</span>
+          </summary>
+          <div style="border-top:1px solid #EDECEA;">
+            <table style="width:100%; border-collapse:collapse;">
+              <thead>
+                <tr style="background:#F5F4F0;">
+                  <th style="padding:7px 14px; text-align:left; font-size:10px; color:#888;">#</th>
+                  <th style="padding:7px 14px; text-align:left; font-size:10px; color:#888;">Título</th>
+                  <th style="padding:7px 10px; text-align:center; font-size:10px; color:#888;">Estado</th>
+                </tr>
+              </thead>
+              <tbody>{rows}</tbody>
             </table>
           </div>
-        </div>"""
+        </details>"""
 
-    if alcance_data.get("bugs"):
-        bug_rows = build_rows(alcance_data["bugs"])
-        html += f"""
-        <div style="margin-bottom:16px;">
-          <div style="padding:0 0 8px;font-size:11px;font-weight:700;color:#3d3d3a;text-transform:uppercase;">Incidentes planificados ({len(alcance_data["bugs"])})</div>
-          <div style="background:#fff;border-radius:8px;border:1px solid #EDECEA;overflow:hidden;">
-            <table style="width:100%;border-collapse:collapse;">
-              <thead><tr style="background:#F5F4F0;"><th style="padding:7px 14px;text-align:left;font-size:10px;color:#888;">#</th><th style="padding:7px 14px;text-align:left;font-size:10px;color:#888;">Título</th><th style="padding:7px 10px;text-align:center;font-size:10px;color:#888;">Estado</th></tr></thead>
-              <tbody>{bug_rows}</tbody>
-            </table>
-          </div>
-        </div>"""
+    html += _collapsible_table("Implementaciones / Nuevas Funcionalidades", len(alcance_data["tasks"]), alcance_data["tasks"])
+    html += _collapsible_table("Incidentes planificados", len(alcance_data["bugs"]), alcance_data["bugs"])
 
     html += "</div>"
     return html
@@ -953,6 +953,20 @@ def plan_name():
     if "_error" in info:
         return jsonify({"error": f"No se encontró el plan {plan_id}"}), 404
     return jsonify({"name": info.get("name","")})
+
+@app.route("/api/workitem-name")
+def workitem_name():
+    wi_id = request.args.get("id","")
+    if not wi_id.isdigit():
+        return jsonify({"error": "ID inválido"}), 400
+    wi = get_work_item(int(wi_id))
+    if "_error" in wi or not wi:
+        return jsonify({"error": f"Work Item #{wi_id} no existe en Azure DevOps"}), 404
+    
+    wi_type = wi.get("fields", {}).get("System.WorkItemType", "Work Item")
+    name = wi.get("fields", {}).get("System.Title", "")
+    
+    return jsonify({"name": name, "type": wi_type})
 
 @app.route("/generate", methods=["POST"])
 def generate():

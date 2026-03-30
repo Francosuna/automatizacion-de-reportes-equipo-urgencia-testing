@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Informe Final — SALUS WEB 17.2.25</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    body{font-family:'DM Sans',sans-serif;background:#F3F4F4;color:#061E29;padding:32px 24px;line-height:1.65;font-weight:500;}
+    h2{font-size:13px;font-weight:700;color:#1D546D;text-transform:uppercase;letter-spacing:.08em;margin:16px 0 12px;display:flex;align-items:center;gap:8px;}
+    h2::before{content:'';display:inline-block;width:3px;height:14px;background:#5F9598;border-radius:2px;}
+    h1, h2, h3, .subtitle{ font-weight: 600 !important; }
+    
+    table { width: 100%; border-collapse: collapse; }
+    th { font-size: 12px; font-weight: 600 !important; color: #444 !important; text-transform: uppercase; padding: 11px 14px; text-align: left; background: #F5F4F0; }
+    td { font-size: 14px; font-weight: 500; padding: 11px 14px; color: #3d3d3a; }
+    
+    .btn-export:hover { background: #1D546D !important; opacity: 0.9; transform: translateY(-1px); transition: all 0.2s; }
+    .nav-link { color: #1D546D; text-decoration: none; font-size: 12px; font-weight: 600; }
+    .nav-link:hover { text-decoration: underline; }
+
+    @media print{
+        body{background:#fff;padding:0;}
+        .no-print{display:none !important;}
+        table, td, th { font-size: 12pt !important; }
+        tr { page-break-inside: avoid !important; }
+    }
+  </style>
+</head>
+<body>
+<div style="max-width:960px;margin:0 auto;">
+
+  <!-- Header -->
+  <div style="background:#061E29;border-radius:12px 12px 0 0;padding:28px 32px;color:#F3F4F4;">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:16px;">
+      <div>
+        <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.12em;margin-bottom:8px;opacity:0.8;">AGRUPADOR URGENCIAS - SALUS</div>
+        <h1 style="font-size:28px;font-weight:600;">Informe Final de Pruebas</h1>
+        <div style="font-size:15px;margin-top:4px;opacity:0.9;">SALUS WEB · Ciclo 5 · 17.2.25</div>
+      </div>
+      <div style="display:flex;gap:10px;align-items:center;">
+        <span style="font-size:12px;font-weight:600;padding:6px 16px;border-radius:8px;
+          background:#F3F4F4;color:#061E29;border:1px solid rgba(255,255,255,0.2);">Fallido con incidentes</span>
+        <button class="no-print btn-export" onclick="window.print()" style="padding:6px 16px;border-radius:8px;
+          border:none;background:#5F9598;color:#fff;font-family:inherit;font-size:12px;font-weight:600;cursor:pointer;">Exportar PDF</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Indice de Navegacion -->
+  <div class="no-print" style="background:#fff; border:1px solid #EDECEA; border-top:none; padding:12px 32px; display:flex; gap:20px; flex-wrap:wrap; border-bottom: 2px solid #F3F4F4;">
+    <a href="#especificaciones" class="nav-link">Especificaciones</a>
+    <a href="#detalle" class="nav-link">Detalle de pruebas</a>
+    <a href="#resultados" class="nav-link">Resultados</a>
+    <a href="#incidentes" class="nav-link">Incidentes</a>
+    <a href="#riesgos" class="nav-link">Riesgos</a>
+  </div>
+
+  <div style="background:#fff;border-radius:0 0 12px 12px;border:1px solid #EDECEA;border-top:none;padding:24px 32px;margin-bottom:24px;">
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:24px;">
+      <div>
+        <div style="font-size:10px;color:#888;text-transform:uppercase;font-weight:600;letter-spacing:.05em;margin-bottom:6px;">Producto</div>
+        <div style="font-size:14px;font-weight:600;color:#061E29;">SALUS WEB</div>
+        <div style="font-size:12px;color:#888;margin-top:2px;">Versión 17.2.25</div>
+      </div>
+      <div>
+        <div style="font-size:10px;color:#888;text-transform:uppercase;font-weight:600;letter-spacing:.05em;margin-bottom:6px;">Plan de ejecución</div>
+        <div style="font-size:12px;color:#3d3d3a;">
+          <span style="color:#888;">Planificado:</span> 21/03/2026 → 21/03/2026<br>
+          <span style="color:#888;">Real:</span> 21/03/2026 → 21/03/2026
+        </div>
+      </div>
+      <div>
+        <div style="font-size:10px;color:#888;text-transform:uppercase;font-weight:600;letter-spacing:.05em;margin-bottom:6px;">Responsables de ejecución</div>
+        <ul style="list-style:none;padding:0;"><li style="font-size:13px;color:#3d3d3a;padding:2px 0;">Rafael Jose Cañizalez Mendoza</li><li style="font-size:13px;color:#3d3d3a;padding:2px 0;">Gloria Huilen Garcia</li><li style="font-size:13px;color:#3d3d3a;padding:2px 0;">Franco Osuna</li><li style="font-size:13px;color:#3d3d3a;padding:2px 0;">Anthony Jose Soto Marquez</li><li style="font-size:13px;color:#3d3d3a;padding:2px 0;">Ezequiel Tissier</li></ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- 1. Especificaciones -->
+  <div id="especificaciones" style="background:#fff;border-radius:12px;border:1px solid #EDECEA;padding:16px 20px;margin-bottom:24px;">
+    <h2>1 · Especificaciones</h2>
+    <div style="font-size:11px;font-weight:500;color:#888;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;">Alcance 17.2.25</div>
+    <ul style="padding-left:18px;"><li style="font-size:13px;color:#3d3d3a;padding:2px 0;">Smoke Test</li><li style="font-size:13px;color:#3d3d3a;padding:2px 0;">Paquete de incidencias</li><li style="font-size:13px;color:#3d3d3a;padding:2px 0;">Pruebas integrales</li><li style="font-size:13px;color:#3d3d3a;padding:2px 0;">Task 92056 Realizar cambios en el backend para poder diferenciar errores 500</li><li style="font-size:13px;color:#3d3d3a;padding:2px 0;">Task 91960 Listados generales. Filtrado de fechas. Búsqueda avanzada utilizando el criterio</li><li style="font-size:13px;color:#3d3d3a;padding:2px 0;">Task 73764 Listados generales. Filtrado de fechas. Cambio del formato de fecha</li><li style="font-size:13px;color:#3d3d3a;padding:2px 0;">Task 73765 Selectores. Filtrado de fechas. Cambio del formato de fecha</li><li style="font-size:13px;color:#3d3d3a;padding:2px 0;">Task 91783 Se solicita poder copiar los campos que ya están dehabilitados</li></ul>
+    
+  </div>
+
+  <!-- 2. Detalle de pruebas -->
+  <div id="detalle" style="background:#fff;border-radius:12px;border:1px solid #EDECEA;overflow:hidden;margin-bottom:24px;">
+    <div style="padding:13px 20px;border-bottom:1px solid #EDECEA;background:#FAFAF8;">
+      <h2 style="margin:0;">2 · Detalle de pruebas</h2>
+    </div>
+    <table>
+      <thead><tr>
+        <th>Producto</th>
+        <th>Título / Descripción</th>
+        <th>Tipo de prueba</th>
+        <th>Resultado</th>
+      </tr></thead>
+      <tbody><tr style="border-top:1px solid #EDECEA;"><td style="padding:8px 20px;font-size:13px;color:#888;">SALUS WEB / MVP 2 (Ciclo 5)</td><td style="padding:8px 14px;font-size:13px;color:#3d3d3a;">Paquete de incidencias</td><td style="padding:8px 14px;font-size:13px;color:#888;">Funcional</td><td style="padding:8px 14px;font-size:13px;color:#3d3d3a;"><span style="font-size:11px;font-weight:600;padding:2px 10px;border-radius:20px;white-space:nowrap;background:#EAF3DE;color:#3B6D11;">Exitoso</span></td></tr><tr style="border-top:1px solid #EDECEA;"><td style="padding:8px 20px;font-size:13px;color:#888;">SALUS WEB / MVP 2 (Ciclo 5)</td><td style="padding:8px 14px;font-size:13px;color:#3d3d3a;">Smoke Test V3</td><td style="padding:8px 14px;font-size:13px;color:#888;">Funcional</td><td style="padding:8px 14px;font-size:13px;color:#3d3d3a;"><span style="font-size:11px;font-weight:600;padding:2px 10px;border-radius:20px;white-space:nowrap;background:#EAF3DE;color:#3B6D11;">Exitoso</span></td></tr><tr style="border-top:1px solid #EDECEA;"><td style="padding:8px 20px;font-size:13px;color:#888;">SALUS WEB / MVP 2 (Ciclo 5)</td><td style="padding:8px 14px;font-size:13px;color:#3d3d3a;">Punta a punta</td><td style="padding:8px 14px;font-size:13px;color:#888;">Funcional</td><td style="padding:8px 14px;font-size:13px;color:#3d3d3a;"><span style="font-size:11px;font-weight:600;padding:2px 10px;border-radius:20px;white-space:nowrap;background:#EAF3DE;color:#3B6D11;">Exitoso</span></td></tr><tr style="border-top:1px solid #EDECEA;"><td style="padding:8px 20px;font-size:13px;color:#888;">SALUS WEB / MVP 2 (Ciclo 5)</td><td style="padding:8px 14px;font-size:13px;color:#3d3d3a;">Funcionalidades - Cambios</td><td style="padding:8px 14px;font-size:13px;color:#888;">Funcional</td><td style="padding:8px 14px;font-size:13px;color:#3d3d3a;"><span style="font-size:11px;font-weight:600;padding:2px 10px;border-radius:20px;white-space:nowrap;background:#EAF3DE;color:#3B6D11;">Exitoso</span></td></tr><tr style="border-top:1px solid #EDECEA;"><td style="padding:8px 20px;font-size:13px;color:#888;">SALUS WEB / MVP 2 (Ciclo 5)</td><td style="padding:8px 14px;font-size:13px;color:#3d3d3a;">fuera de alcance</td><td style="padding:8px 14px;font-size:13px;color:#888;">Funcional</td><td style="padding:8px 14px;font-size:13px;color:#3d3d3a;"><span style="font-size:11px;font-weight:600;padding:2px 10px;border-radius:20px;white-space:nowrap;background:#EAF3DE;color:#3B6D11;">Exitoso</span></td></tr></tbody>
+    </table>
+  </div>
+
+  <!-- 3. Resultados -->
+  <div id="resultados" style="margin-bottom:12px;"><h2>3 · Resultados de las pruebas</h2></div>
+  <div style="display:grid;grid-template-columns:1.5fr repeat(4, 1fr);gap:16px;margin-bottom:24px;">
+    <div style="background:#061E29;border-radius:12px;padding:16px 20px;color:#fff;">
+      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;opacity:0.8;">Total Casos</div>
+      <div style="font-size:32px;font-weight:700;margin:6px 0 4px;">130</div>
+      <div style="font-size:12px;opacity:0.8;">Casos totales ejecutados</div>
+    </div>
+    <div style="background:#EBF7F2;border-radius:12px;padding:16px 20px;border:1px solid #C2E7D9;">
+      <div style="font-size:11px;font-weight:700;color:#2D6A4F;text-transform:uppercase;letter-spacing:.05em;">Passed</div>
+      <div style="font-size:28px;font-weight:700;color:#1B4332;margin:4px 0 2px;">2</div>
+      <div style="font-size:11px;font-weight:600;color:#2D6A4F;">1.5%</div>
+    </div>
+    <div style="background:#FDF2F2;border-radius:12px;padding:16px 20px;border:1px solid #F9D6D6;">
+      <div style="font-size:11px;font-weight:700;color:#A32D2D;text-transform:uppercase;letter-spacing:.05em;">Failed</div>
+      <div style="font-size:28px;font-weight:700;color:#501313;margin:4px 0 2px;">0</div>
+      <div style="font-size:11px;font-weight:600;color:#A32D2D;">0.0%</div>
+    </div>
+    <div style="background:#FFF9F0;border-radius:12px;padding:16px 20px;border:1px solid #FFE8CC;">
+      <div style="font-size:11px;font-weight:700;color:#854F0B;text-transform:uppercase;letter-spacing:.05em;">Blocked</div>
+      <div style="font-size:28px;font-weight:700;color:#412402;margin:4px 0 2px;">0</div>
+      <div style="font-size:11px;font-weight:600;color:#854F0B;">0.0%</div>
+    </div>
+    <div style="background:#F8F9F9;border-radius:12px;padding:16px 20px;border:1px solid #E5E7EB;">
+      <div style="font-size:11px;font-weight:700;color:#4B5563;text-transform:uppercase;letter-spacing:.05em;">Not Run</div>
+      <div style="font-size:28px;font-weight:700;color:#1F2937;margin:4px 0 2px;">128</div>
+      <div style="font-size:11px;font-weight:600;color:#4B5563;">98.5%</div>
+    </div>
+  </div>
+  <div style="margin-top:16px;margin-bottom:8px;">
+          <div style="font-size:10px;font-weight:500;color:#888;text-transform:uppercase;
+            letter-spacing:.07em;padding:8px 0 6px;border-bottom:1px solid #EDECEA;margin-bottom:10px;">
+            Test plan · MVP 2 (Ciclo 5)
+          </div></div>
+    <section style="margin-bottom:20px;background:#fff;border-radius:12px;border:1px solid #EDECEA;overflow:hidden;">
+      <div style="padding:13px 20px;display:flex;align-items:center;justify-content:space-between;
+                  border-bottom:1px solid #EDECEA;background:#FAFAF8;flex-wrap:wrap;gap:8px;">
+        <div>
+          <div style="font-size:10px;font-weight:500;color:#888;text-transform:uppercase;letter-spacing:.06em;">SALUS WEB</div>
+          <div style="font-size:15px;font-weight:600;color:#1a1a18;margin-top:2px;">Paquete de incidencias</div>
+        </div>
+        <span style="font-size:11px;font-weight:500;padding:2px 10px;border-radius:20px;background:#EAF3DE;color:#3B6D11;">Exitoso</span>
+      </div>
+      <div style="padding:14px 20px;">
+        <div style="font-size:13px;color:#3d3d3a;margin-bottom:10px;">
+          <b>Total, Casos de Prueba: 39</b>
+        </div>
+        <div style="font-size:13px;color:#3d3d3a;margin-bottom:4px;">
+          Casos exitosos: <b>2 (5.1%)</b>
+        </div>
+        <div style="font-size:13px;color:#3d3d3a;margin-bottom:10px;">
+          Casos con incidencia: <b>0 (0.0%)</b><span style="font-size:12px;color:#888;margin-left:8px;">Casos No Aplica: 37 (94.9%)</span>
+        </div>
+        <div style="display:flex;gap:2px;height:7px;border-radius:4px;overflow:hidden;"><div style="width:5.1%;background:#5F9598;height:100%;border-radius:2px;" title="passed: 2"></div></div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;">
+          <span style="font-size:11px;font-weight:500;padding:2px 8px;border-radius:20px;background:#EAF3DE;color:#3B6D11;white-space:nowrap;">Passed <b>2</b></span> 
+          
+          
+          <span style="font-size:11px;font-weight:500;padding:2px 8px;border-radius:20px;background:#F1EFE8;color:#5F5E5A;white-space:nowrap;">Not Run <b>37</b></span> 
+        </div>
+      </div>
+    </section>
+    <section style="margin-bottom:20px;background:#fff;border-radius:12px;border:1px solid #EDECEA;overflow:hidden;">
+      <div style="padding:13px 20px;display:flex;align-items:center;justify-content:space-between;
+                  border-bottom:1px solid #EDECEA;background:#FAFAF8;flex-wrap:wrap;gap:8px;">
+        <div>
+          <div style="font-size:10px;font-weight:500;color:#888;text-transform:uppercase;letter-spacing:.06em;">SALUS WEB</div>
+          <div style="font-size:15px;font-weight:600;color:#1a1a18;margin-top:2px;">Smoke Test V3</div>
+        </div>
+        <span style="font-size:11px;font-weight:500;padding:2px 10px;border-radius:20px;background:#EAF3DE;color:#3B6D11;">Exitoso</span>
+      </div>
+      <div style="padding:14px 20px;">
+        <div style="font-size:13px;color:#3d3d3a;margin-bottom:10px;">
+          <b>Total, Casos de Prueba: 61</b>
+        </div>
+        <div style="font-size:13px;color:#3d3d3a;margin-bottom:4px;">
+          Casos exitosos: <b>0 (0.0%)</b>
+        </div>
+        <div style="font-size:13px;color:#3d3d3a;margin-bottom:10px;">
+          Casos con incidencia: <b>0 (0.0%)</b><span style="font-size:12px;color:#888;margin-left:8px;">Casos No Aplica: 61 (100.0%)</span>
+        </div>
+        <div style="display:flex;gap:2px;height:7px;border-radius:4px;overflow:hidden;"></div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;">
+          
+          
+          
+          <span style="font-size:11px;font-weight:500;padding:2px 8px;border-radius:20px;background:#F1EFE8;color:#5F5E5A;white-space:nowrap;">Not Run <b>61</b></span> 
+        </div>
+      </div>
+    </section>
+    <section style="margin-bottom:20px;background:#fff;border-radius:12px;border:1px solid #EDECEA;overflow:hidden;">
+      <div style="padding:13px 20px;display:flex;align-items:center;justify-content:space-between;
+                  border-bottom:1px solid #EDECEA;background:#FAFAF8;flex-wrap:wrap;gap:8px;">
+        <div>
+          <div style="font-size:10px;font-weight:500;color:#888;text-transform:uppercase;letter-spacing:.06em;">SALUS WEB</div>
+          <div style="font-size:15px;font-weight:600;color:#1a1a18;margin-top:2px;">Punta a punta</div>
+        </div>
+        <span style="font-size:11px;font-weight:500;padding:2px 10px;border-radius:20px;background:#EAF3DE;color:#3B6D11;">Exitoso</span>
+      </div>
+      <div style="padding:14px 20px;">
+        <div style="font-size:13px;color:#3d3d3a;margin-bottom:10px;">
+          <b>Total, Casos de Prueba: 21</b>
+        </div>
+        <div style="font-size:13px;color:#3d3d3a;margin-bottom:4px;">
+          Casos exitosos: <b>0 (0.0%)</b>
+        </div>
+        <div style="font-size:13px;color:#3d3d3a;margin-bottom:10px;">
+          Casos con incidencia: <b>0 (0.0%)</b><span style="font-size:12px;color:#888;margin-left:8px;">Casos No Aplica: 21 (100.0%)</span>
+        </div>
+        <div style="display:flex;gap:2px;height:7px;border-radius:4px;overflow:hidden;"></div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;">
+          
+          
+          
+          <span style="font-size:11px;font-weight:500;padding:2px 8px;border-radius:20px;background:#F1EFE8;color:#5F5E5A;white-space:nowrap;">Not Run <b>21</b></span> 
+        </div>
+      </div>
+    </section>
+    <section style="margin-bottom:20px;background:#fff;border-radius:12px;border:1px solid #EDECEA;overflow:hidden;">
+      <div style="padding:13px 20px;display:flex;align-items:center;justify-content:space-between;
+                  border-bottom:1px solid #EDECEA;background:#FAFAF8;flex-wrap:wrap;gap:8px;">
+        <div>
+          <div style="font-size:10px;font-weight:500;color:#888;text-transform:uppercase;letter-spacing:.06em;">SALUS WEB</div>
+          <div style="font-size:15px;font-weight:600;color:#1a1a18;margin-top:2px;">Funcionalidades - Cambios</div>
+        </div>
+        <span style="font-size:11px;font-weight:500;padding:2px 10px;border-radius:20px;background:#EAF3DE;color:#3B6D11;">Exitoso</span>
+      </div>
+      <div style="padding:14px 20px;">
+        <div style="font-size:13px;color:#3d3d3a;margin-bottom:10px;">
+          <b>Total, Casos de Prueba: 5</b>
+        </div>
+        <div style="font-size:13px;color:#3d3d3a;margin-bottom:4px;">
+          Casos exitosos: <b>0 (0.0%)</b>
+        </div>
+        <div style="font-size:13px;color:#3d3d3a;margin-bottom:10px;">
+          Casos con incidencia: <b>0 (0.0%)</b><span style="font-size:12px;color:#888;margin-left:8px;">Casos No Aplica: 5 (100.0%)</span>
+        </div>
+        <div style="display:flex;gap:2px;height:7px;border-radius:4px;overflow:hidden;"></div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;">
+          
+          
+          
+          <span style="font-size:11px;font-weight:500;padding:2px 8px;border-radius:20px;background:#F1EFE8;color:#5F5E5A;white-space:nowrap;">Not Run <b>5</b></span> 
+        </div>
+      </div>
+    </section>
+    <section style="margin-bottom:20px;background:#fff;border-radius:12px;border:1px solid #EDECEA;overflow:hidden;">
+      <div style="padding:13px 20px;display:flex;align-items:center;justify-content:space-between;
+                  border-bottom:1px solid #EDECEA;background:#FAFAF8;flex-wrap:wrap;gap:8px;">
+        <div>
+          <div style="font-size:10px;font-weight:500;color:#888;text-transform:uppercase;letter-spacing:.06em;">SALUS WEB</div>
+          <div style="font-size:15px;font-weight:600;color:#1a1a18;margin-top:2px;">fuera de alcance</div>
+        </div>
+        <span style="font-size:11px;font-weight:500;padding:2px 10px;border-radius:20px;background:#EAF3DE;color:#3B6D11;">Exitoso</span>
+      </div>
+      <div style="padding:14px 20px;">
+        <div style="font-size:13px;color:#3d3d3a;margin-bottom:10px;">
+          <b>Total, Casos de Prueba: 4</b>
+        </div>
+        <div style="font-size:13px;color:#3d3d3a;margin-bottom:4px;">
+          Casos exitosos: <b>0 (0.0%)</b>
+        </div>
+        <div style="font-size:13px;color:#3d3d3a;margin-bottom:10px;">
+          Casos con incidencia: <b>0 (0.0%)</b><span style="font-size:12px;color:#888;margin-left:8px;">Casos No Aplica: 4 (100.0%)</span>
+        </div>
+        <div style="display:flex;gap:2px;height:7px;border-radius:4px;overflow:hidden;"></div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;">
+          
+          
+          
+          <span style="font-size:11px;font-weight:500;padding:2px 8px;border-radius:20px;background:#F1EFE8;color:#5F5E5A;white-space:nowrap;">Not Run <b>4</b></span> 
+        </div>
+      </div>
+    </section>
+
+  <!-- 4. Incidentes -->
+  <div id="incidentes" style="background:#fff;border-radius:12px;border:1px solid #EDECEA;padding:14px 20px;margin-bottom:12px;">
+    <h2 style="margin:0;">4 · Detalle de incidentes</h2>
+    <div style="font-size:13px;color:#888;margin-top:6px;">Durante las pruebas se detectaron los siguientes incidentes, agrupados según su nivel de criticidad.</div>
+  </div>
+  <section style="margin-bottom:20px;background:#fff;border-radius:12px;
+                   border:1px solid #EDECEA;padding:16px 20px;">
+                   <p style="color:#888;font-size:13px;">No se encontraron incidentes.</p></section>
+  
+    <section id="incidentes_4.2" style="margin-bottom:24px;background:#fff;border-radius:12px;border:1px solid #EDECEA;overflow:hidden;">
+      <div style="padding:16px 20px;border-bottom:1px solid #EDECEA;background:#FAFAF8;">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <div>
+            <div style="font-size:11px;font-weight:700;color:#1D546D;text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px;">4.2</div>
+            <div style="font-size:16px;font-weight:600;color:#061E29;margin-bottom:3px;">Paquete de incidentes corregidas — Versión anterior (Ciclo 5 MVP 2) de SALUS Web</div>
+            <div style="font-size:13px;color:#888;">MVP-2. Ciclo de testing 4 (CT4) - version 17.2.21</div>
+          </div>
+          <div style="text-align:right;background:#1D546D;color:#fff;padding:8px 18px;border-radius:10px;">
+            <div style="font-size:10px;text-transform:uppercase;font-weight:600;opacity:0.8;">Total Incidentes</div>
+            <div style="font-size:24px;font-weight:700;">2</div>
+          </div>
+        </div>
+      </div>
+      <div style="padding:10px 20px;border-bottom:1px solid #EDECEA;background:#FAFAF8;">
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:5px;">
+          <span style="font-size:12px;font-weight:600;padding:2px 10px;border-radius:20px;background:#FCEBEB;color:#791F1F;white-space:nowrap;">Crítico <b>1</b></span> <span style="font-size:12px;font-weight:600;padding:2px 10px;border-radius:20px;background:#FAEEDA;color:#633806;white-space:nowrap;">Alto <b>1</b></span> 
+        </div>
+        <div style="font-size:12px;color:#888;">Cantidad por criticidad — <b>Críticos: 1</b>  ·  <b>Altos: 1</b></div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;padding:24px 20px;border-bottom:1px solid #EDECEA;">
+        <div style="text-align:center;">
+          <div style="font-size:11px;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:.06em;margin-bottom:16px;">Por criticidad</div>
+          <canvas id="c8451_s" width="320" height="320" style="max-width:320px;margin:0 auto;display:block;"></canvas>
+        </div>
+        <div style="text-align:center;">
+          <div style="font-size:11px;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:.06em;margin-bottom:16px;">Por módulo / funcionalidad</div>
+          <canvas id="c8451_m" width="320" height="320" style="max-width:320px;margin:0 auto;display:block;"></canvas>
+        </div>
+      </div>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+      <script>
+      (function(){
+        var ttCb = {label:function(ctx){var sum=ctx.chart.data.datasets[0].data.reduce(function(a,b){return a+b},0);var p=Math.round(ctx.parsed/sum*100);return ' '+ctx.label+': '+p+'%';}};
+        var ttOpts = {enabled:true,backgroundColor:'rgba(30,30,30,.9)',titleFont:{size:12,weight:'600'},bodyFont:{size:12},padding:10,cornerRadius:8,callbacks:ttCb};
+        var legOpts = {position:'bottom',labels:{font:{size:12,weight:'500'},padding:14,usePointStyle:true,pointStyle:'rectRounded',boxWidth:14,boxHeight:10}};
+        new Chart(document.getElementById('c8451_s'),{type:'doughnut',data:{labels:['Crítico', 'Alto'],datasets:[{data:[1, 1],backgroundColor:['#E24B4A', '#D88C3A'],borderWidth:3,borderColor:'#fff',hoverBorderWidth:4,hoverOffset:8}]},options:{responsive:true,maintainAspectRatio:true,plugins:{tooltip:ttOpts,legend:legOpts},cutout:'60%',animation:{animateRotate:true,duration:600}}});
+        new Chart(document.getElementById('c8451_m'),{type:'doughnut',data:{labels:['Formulario del caso'],datasets:[{data:[2],backgroundColor:['#1D546D', '#5F9598', '#061E29', '#d1d1d1', '#8baeb0', '#487182'],borderWidth:3,borderColor:'#fff',hoverBorderWidth:4,hoverOffset:8}]},options:{responsive:true,maintainAspectRatio:true,plugins:{tooltip:ttOpts,legend:legOpts},cutout:'60%',animation:{animateRotate:true,duration:600}}});
+      })();
+      </script>
+      <div style="padding:12px 20px 4px;font-size:10px;font-weight:500;color:#888;text-transform:uppercase;letter-spacing:.05em;">Porcentaje de incidencias detectadas por módulo / funcionalidad</div>
+      <table style="width:100%;border-collapse:collapse;margin-bottom:8px;">
+        <thead><tr style="background:#F5F4F0;">
+          <th style="padding:7px 16px;text-align:left;font-size:10px;font-weight:500;color:#888;text-transform:uppercase;">Módulo</th>
+          <th style="padding:7px 8px;text-align:center;font-size:10px;font-weight:500;color:#888;text-transform:uppercase;">Total</th>
+          <th style="padding:7px 8px;text-align:center;font-size:10px;font-weight:500;color:#888;text-transform:uppercase;">% del total</th>
+          <th style="padding:7px 14px;text-align:left;font-size:10px;font-weight:500;color:#888;text-transform:uppercase;">Desglose</th>
+        </tr></thead>
+        <tbody><tr style="border-top:1px solid #EDECEA;"><td style="padding:11px 16px;font-size:14px;color:#3d3d3a;">Formulario del caso</td><td style="padding:11px 8px;text-align:center;font-size:14px;color:#3d3d3a;font-weight:600;">2</td><td style="padding:11px 8px;text-align:center;font-size:14px;font-weight:600;color:#1D546D;">100.0%</td><td style="padding:11px 14px;"><span style="font-size:12px;font-weight:600;padding:2px 10px;border-radius:20px;background:#FCEBEB;color:#791F1F;white-space:nowrap;">Crítico <b>1</b></span> <span style="font-size:12px;font-weight:600;padding:2px 10px;border-radius:20px;background:#FAEEDA;color:#633806;white-space:nowrap;">Alto <b>1</b></span> </td></tr></tbody>
+      </table>
+      <div style="padding:12px 20px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;
+                  background:#FAFAF8;border-top:1px solid #EDECEA;border-bottom:1px solid #EDECEA;
+                  margin-top:6px;transition:background .15s;"
+           onmouseover="this.style.background='#F1F0EC'" onmouseout="this.style.background='#FAFAF8'"
+           onclick="var tbl=this.closest('section').querySelector('.inc-table'); var arrow=this.querySelector('.toggle-arrow'); if(tbl.style.display==='none'){ tbl.style.display='table'; arrow.style.transform='rotate(90deg)'; } else { tbl.style.display='none'; arrow.style.transform='rotate(0deg)'; }">
+        <span style="font-size:12px;font-weight:600;color:#5F5E5A;text-transform:uppercase;letter-spacing:.06em;">Detalle de bugs corregidos (2)</span>
+        <span class="toggle-arrow" style="font-size:12px;color:#888;transition:transform .2s;display:inline-block;transform:rotate(90deg);">&#9654;</span>
+      </div>
+      <table class="inc-table" style="width:100%;border-collapse:collapse;display:table;">
+        <thead><tr style="background:#F5F4F0;">
+          <th style="padding:7px 14px;text-align:left;font-size:10px;font-weight:500;color:#888;text-transform:uppercase;">#</th>
+          <th style="padding:7px 14px;text-align:left;font-size:10px;font-weight:500;color:#888;text-transform:uppercase;">Título</th>
+          <th style="padding:7px 8px;text-align:center;font-size:10px;font-weight:500;color:#888;text-transform:uppercase;">Severidad</th>
+          <th style="padding:7px 8px;text-align:center;font-size:10px;font-weight:500;color:#888;text-transform:uppercase;">Estado</th>
+        </tr></thead>
+        <tbody><tr style="border-top:1px solid #E4E2DF; background:#ffffff;"><td style="padding:11px 14px; padding-left:12px; font-size:12px; color:#888; border-left:3px solid #E24B4A;">#90383</td><td style="padding:11px 14px; font-size:14px; color:#3d3d3a;">Error - Código de resolución en casos de Queja y Gestión Administrativa</td><td style="padding:11px 8px; text-align:center;"><span style="font-size:12px;font-weight:600;padding:2px 10px;border-radius:20px;background:#FCEBEB;color:#791F1F;white-space:nowrap;">Crítico</span> </td><td style="padding:11px 8px; text-align:center;"><span style="font-size:12px; font-weight:600; padding:2px 10px; border-radius:20px;background:#EAF3DE;color:#3B6D11;">Closed</span></td></tr><tr style="border-top:1px solid #E4E2DF; background:#F9F8F6;"><td style="padding:11px 14px; padding-left:12px; font-size:12px; color:#888; border-left:3px solid #D88C3A;">#90504</td><td style="padding:11px 14px; font-size:14px; color:#3d3d3a;">Gestion Administrativa - Codigo De Resolución erratico. (Duplicado)</td><td style="padding:11px 8px; text-align:center;"><span style="font-size:12px;font-weight:600;padding:2px 10px;border-radius:20px;background:#FAEEDA;color:#633806;white-space:nowrap;">Alto</span> </td><td style="padding:11px 8px; text-align:center;"><span style="font-size:12px; font-weight:600; padding:2px 10px; border-radius:20px;background:#EAF3DE;color:#3B6D11;">Closed</span></td></tr></tbody>
+      </table>
+    </section>
+    <section id="incidentes_4.3" style="margin-bottom:24px;background:#fff;border-radius:12px;border:1px solid #EDECEA;overflow:hidden;">
+      <div style="padding:16px 20px;border-bottom:1px solid #EDECEA;background:#FAFAF8;">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <div>
+            <div style="font-size:11px;font-weight:700;color:#1D546D;text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px;">4.3</div>
+            <div style="font-size:16px;font-weight:600;color:#061E29;margin-bottom:3px;">Incidencias pendientes de corrección de la Versión anterior (Ciclo 5 MVP 2) de SALUS Web</div>
+            <div style="font-size:13px;color:#888;">MVP-2. Ciclo de testing 4 (CT4) - version 17.2.21</div>
+          </div>
+          <div style="text-align:right;background:#1D546D;color:#fff;padding:8px 18px;border-radius:10px;">
+            <div style="font-size:10px;text-transform:uppercase;font-weight:600;opacity:0.8;">Total Incidentes</div>
+            <div style="font-size:24px;font-weight:700;">7</div>
+          </div>
+        </div>
+      </div>
+      <div style="padding:10px 20px;border-bottom:1px solid #EDECEA;background:#FAFAF8;">
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:5px;">
+          <span style="font-size:12px;font-weight:600;padding:2px 10px;border-radius:20px;background:#FAEEDA;color:#633806;white-space:nowrap;">Alto <b>5</b></span> <span style="font-size:12px;font-weight:600;padding:2px 10px;border-radius:20px;background:#FFF9C4;color:#6B5900;white-space:nowrap;">Mediano <b>2</b></span> 
+        </div>
+        <div style="font-size:12px;color:#888;">Cantidad por criticidad — <b>Altos: 5</b>  ·  <b>Medianos: 2</b></div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;padding:24px 20px;border-bottom:1px solid #EDECEA;">
+        <div style="text-align:center;">
+          <div style="font-size:11px;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:.06em;margin-bottom:16px;">Por criticidad</div>
+          <canvas id="c19925_s" width="320" height="320" style="max-width:320px;margin:0 auto;display:block;"></canvas>
+        </div>
+        <div style="text-align:center;">
+          <div style="font-size:11px;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:.06em;margin-bottom:16px;">Por módulo / funcionalidad</div>
+          <canvas id="c19925_m" width="320" height="320" style="max-width:320px;margin:0 auto;display:block;"></canvas>
+        </div>
+      </div>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+      <script>
+      (function(){
+        var ttCb = {label:function(ctx){var sum=ctx.chart.data.datasets[0].data.reduce(function(a,b){return a+b},0);var p=Math.round(ctx.parsed/sum*100);return ' '+ctx.label+': '+p+'%';}};
+        var ttOpts = {enabled:true,backgroundColor:'rgba(30,30,30,.9)',titleFont:{size:12,weight:'600'},bodyFont:{size:12},padding:10,cornerRadius:8,callbacks:ttCb};
+        var legOpts = {position:'bottom',labels:{font:{size:12,weight:'500'},padding:14,usePointStyle:true,pointStyle:'rectRounded',boxWidth:14,boxHeight:10}};
+        new Chart(document.getElementById('c19925_s'),{type:'doughnut',data:{labels:['Alto', 'Mediano'],datasets:[{data:[5, 2],backgroundColor:['#D88C3A', '#ECC21D'],borderWidth:3,borderColor:'#fff',hoverBorderWidth:4,hoverOffset:8}]},options:{responsive:true,maintainAspectRatio:true,plugins:{tooltip:ttOpts,legend:legOpts},cutout:'60%',animation:{animateRotate:true,duration:600}}});
+        new Chart(document.getElementById('c19925_m'),{type:'doughnut',data:{labels:['Formulario de contacto', 'Integraciones', 'Formulario del caso'],datasets:[{data:[4, 2, 1],backgroundColor:['#1D546D', '#5F9598', '#061E29', '#d1d1d1', '#8baeb0', '#487182'],borderWidth:3,borderColor:'#fff',hoverBorderWidth:4,hoverOffset:8}]},options:{responsive:true,maintainAspectRatio:true,plugins:{tooltip:ttOpts,legend:legOpts},cutout:'60%',animation:{animateRotate:true,duration:600}}});
+      })();
+      </script>
+      <div style="padding:12px 20px 4px;font-size:10px;font-weight:500;color:#888;text-transform:uppercase;letter-spacing:.05em;">Porcentaje de incidencias detectadas por módulo / funcionalidad</div>
+      <table style="width:100%;border-collapse:collapse;margin-bottom:8px;">
+        <thead><tr style="background:#F5F4F0;">
+          <th style="padding:7px 16px;text-align:left;font-size:10px;font-weight:500;color:#888;text-transform:uppercase;">Módulo</th>
+          <th style="padding:7px 8px;text-align:center;font-size:10px;font-weight:500;color:#888;text-transform:uppercase;">Total</th>
+          <th style="padding:7px 8px;text-align:center;font-size:10px;font-weight:500;color:#888;text-transform:uppercase;">% del total</th>
+          <th style="padding:7px 14px;text-align:left;font-size:10px;font-weight:500;color:#888;text-transform:uppercase;">Desglose</th>
+        </tr></thead>
+        <tbody><tr style="border-top:1px solid #EDECEA;"><td style="padding:11px 16px;font-size:14px;color:#3d3d3a;">Formulario de contacto</td><td style="padding:11px 8px;text-align:center;font-size:14px;color:#3d3d3a;font-weight:600;">4</td><td style="padding:11px 8px;text-align:center;font-size:14px;font-weight:600;color:#1D546D;">57.1%</td><td style="padding:11px 14px;"><span style="font-size:12px;font-weight:600;padding:2px 10px;border-radius:20px;background:#FAEEDA;color:#633806;white-space:nowrap;">Alto <b>3</b></span> <span style="font-size:12px;font-weight:600;padding:2px 10px;border-radius:20px;background:#FFF9C4;color:#6B5900;white-space:nowrap;">Mediano <b>1</b></span> </td></tr><tr style="border-top:1px solid #EDECEA;"><td style="padding:11px 16px;font-size:14px;color:#3d3d3a;">Integraciones</td><td style="padding:11px 8px;text-align:center;font-size:14px;color:#3d3d3a;font-weight:600;">2</td><td style="padding:11px 8px;text-align:center;font-size:14px;font-weight:600;color:#1D546D;">28.6%</td><td style="padding:11px 14px;"><span style="font-size:12px;font-weight:600;padding:2px 10px;border-radius:20px;background:#FAEEDA;color:#633806;white-space:nowrap;">Alto <b>1</b></span> <span style="font-size:12px;font-weight:600;padding:2px 10px;border-radius:20px;background:#FFF9C4;color:#6B5900;white-space:nowrap;">Mediano <b>1</b></span> </td></tr><tr style="border-top:1px solid #EDECEA;"><td style="padding:11px 16px;font-size:14px;color:#3d3d3a;">Formulario del caso</td><td style="padding:11px 8px;text-align:center;font-size:14px;color:#3d3d3a;font-weight:600;">1</td><td style="padding:11px 8px;text-align:center;font-size:14px;font-weight:600;color:#1D546D;">14.3%</td><td style="padding:11px 14px;"><span style="font-size:12px;font-weight:600;padding:2px 10px;border-radius:20px;background:#FAEEDA;color:#633806;white-space:nowrap;">Alto <b>1</b></span> </td></tr></tbody>
+      </table>
+      <div style="padding:12px 20px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;
+                  background:#FAFAF8;border-top:1px solid #EDECEA;border-bottom:1px solid #EDECEA;
+                  margin-top:6px;transition:background .15s;"
+           onmouseover="this.style.background='#F1F0EC'" onmouseout="this.style.background='#FAFAF8'"
+           onclick="var tbl=this.closest('section').querySelector('.inc-table'); var arrow=this.querySelector('.toggle-arrow'); if(tbl.style.display==='none'){ tbl.style.display='table'; arrow.style.transform='rotate(90deg)'; } else { tbl.style.display='none'; arrow.style.transform='rotate(0deg)'; }">
+        <span style="font-size:12px;font-weight:600;color:#5F5E5A;text-transform:uppercase;letter-spacing:.06em;">Detalle de bugs pendientes (7)</span>
+        <span class="toggle-arrow" style="font-size:12px;color:#888;transition:transform .2s;display:inline-block;transform:rotate(90deg);">&#9654;</span>
+      </div>
+      <table class="inc-table" style="width:100%;border-collapse:collapse;display:table;">
+        <thead><tr style="background:#F5F4F0;">
+          <th style="padding:7px 14px;text-align:left;font-size:10px;font-weight:500;color:#888;text-transform:uppercase;">#</th>
+          <th style="padding:7px 14px;text-align:left;font-size:10px;font-weight:500;color:#888;text-transform:uppercase;">Título</th>
+          <th style="padding:7px 8px;text-align:center;font-size:10px;font-weight:500;color:#888;text-transform:uppercase;">Severidad</th>
+          <th style="padding:7px 8px;text-align:center;font-size:10px;font-weight:500;color:#888;text-transform:uppercase;">Estado</th>
+        </tr></thead>
+        <tbody><tr style="border-top:1px solid #E4E2DF; background:#ffffff;"><td style="padding:11px 14px; padding-left:12px; font-size:12px; color:#888; border-left:3px solid #D88C3A;">#91422</td><td style="padding:11px 14px; font-size:14px; color:#3d3d3a;">SALUS Web asigna Catálogo de Servicio incorrectamente al crear caso utilizando protocolo</td><td style="padding:11px 8px; text-align:center;"><span style="font-size:12px;font-weight:600;padding:2px 10px;border-radius:20px;background:#FAEEDA;color:#633806;white-space:nowrap;">Alto</span> </td><td style="padding:11px 8px; text-align:center;"><span style="font-size:12px; font-weight:600; padding:2px 10px; border-radius:20px;background:#F1EFE8;color:#5F5E5A;">QA</span></td></tr><tr style="border-top:1px solid #E4E2DF; background:#F9F8F6;"><td style="padding:11px 14px; padding-left:12px; font-size:12px; color:#888; border-left:3px solid #D88C3A;">#91454</td><td style="padding:11px 14px; font-size:14px; color:#3d3d3a;">CMO múltiple - no habilita el botón envió múltiple hasta no actualizar la pagina</td><td style="padding:11px 8px; text-align:center;"><span style="font-size:12px;font-weight:600;padding:2px 10px;border-radius:20px;background:#FAEEDA;color:#633806;white-space:nowrap;">Alto</span> </td><td style="padding:11px 8px; text-align:center;"><span style="font-size:12px; font-weight:600; padding:2px 10px; border-radius:20px;background:#F1EFE8;color:#5F5E5A;">QA</span></td></tr><tr style="border-top:1px solid #E4E2DF; background:#ffffff;"><td style="padding:11px 14px; padding-left:12px; font-size:12px; color:#888; border-left:3px solid #D88C3A;">#90269</td><td style="padding:11px 14px; font-size:14px; color:#3d3d3a;">No se ejecuta la normalización automática al seleccionar triage</td><td style="padding:11px 8px; text-align:center;"><span style="font-size:12px;font-weight:600;padding:2px 10px;border-radius:20px;background:#FAEEDA;color:#633806;white-space:nowrap;">Alto</span> </td><td style="padding:11px 8px; text-align:center;"><span style="font-size:12px; font-weight:600; padding:2px 10px; border-radius:20px;background:#F1EFE8;color:#5F5E5A;">QA</span></td></tr><tr style="border-top:1px solid #E4E2DF; background:#F9F8F6;"><td style="padding:11px 14px; padding-left:12px; font-size:12px; color:#888; border-left:3px solid #D88C3A;">#90268</td><td style="padding:11px 14px; font-size:14px; color:#3d3d3a;">El número de dirección no guarda la modificación al salir del campo</td><td style="padding:11px 8px; text-align:center;"><span style="font-size:12px;font-weight:600;padding:2px 10px;border-radius:20px;background:#FAEEDA;color:#633806;white-space:nowrap;">Alto</span> </td><td style="padding:11px 8px; text-align:center;"><span style="font-size:12px; font-weight:600; padding:2px 10px; border-radius:20px;background:#F1EFE8;color:#5F5E5A;">QA</span></td></tr><tr style="border-top:1px solid #E4E2DF; background:#ffffff;"><td style="padding:11px 14px; padding-left:12px; font-size:12px; color:#888; border-left:3px solid #D88C3A;">#90686</td><td style="padding:11px 14px; font-size:14px; color:#3d3d3a;">Error al crear caso: el sistema marca síntoma como faltante cuando ya está cargado</td><td style="padding:11px 8px; text-align:center;"><span style="font-size:12px;font-weight:600;padding:2px 10px;border-radius:20px;background:#FAEEDA;color:#633806;white-space:nowrap;">Alto</span> </td><td style="padding:11px 8px; text-align:center;"><span style="font-size:12px; font-weight:600; padding:2px 10px; border-radius:20px;background:#F1EFE8;color:#5F5E5A;">QA</span></td></tr><tr style="border-top:1px solid #E4E2DF; background:#F9F8F6;"><td style="padding:11px 14px; padding-left:12px; font-size:12px; color:#888; border-left:3px solid #ECC21D;">#91423</td><td style="padding:11px 14px; font-size:14px; color:#3d3d3a;">Creacion de Visita medica - CV - No se asigna codigo de TR</td><td style="padding:11px 8px; text-align:center;"><span style="font-size:12px;font-weight:600;padding:2px 10px;border-radius:20px;background:#FFF9C4;color:#6B5900;white-space:nowrap;">Mediano</span> </td><td style="padding:11px 8px; text-align:center;"><span style="font-size:12px; font-weight:600; padding:2px 10px; border-radius:20px;background:#F1EFE8;color:#5F5E5A;">QA</span></td></tr><tr style="border-top:1px solid #E4E2DF; background:#ffffff;"><td style="padding:11px 14px; padding-left:12px; font-size:12px; color:#888; border-left:3px solid #ECC21D;">#90882</td><td style="padding:11px 14px; font-size:14px; color:#3d3d3a;">Formulario de contacto - Validar el campo 'Teléfono' con caracteres no válidos (por ejemplo, caracteres especiales como &, #, % o no numéricos) .</td><td style="padding:11px 8px; text-align:center;"><span style="font-size:12px;font-weight:600;padding:2px 10px;border-radius:20px;background:#FFF9C4;color:#6B5900;white-space:nowrap;">Mediano</span> </td><td style="padding:11px 8px; text-align:center;"><span style="font-size:12px; font-weight:600; padding:2px 10px; border-radius:20px;background:#F1EFE8;color:#5F5E5A;">QA</span></td></tr></tbody>
+      </table>
+    </section>
+
+  <!-- 5. Riesgos -->
+  <div style="background:#fff;border-radius:12px;border:1px solid #EDECEA;padding:16px 20px;margin-bottom:16px;">
+    <h2>5 · Detalle de riesgos detectados</h2>
+    <div style="font-size:13px;color:#3d3d3a;">N/A</div>
+    <div style="margin-top:12px;">
+      <div style="font-size:11px;font-weight:500;color:#888;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px;">Observaciones</div>
+      <div style="font-size:13px;color:#3d3d3a;">N/A</div>
+    </div>
+  </div>
+
+  <!-- 6. Referencia de severidad -->
+  <div style="margin-bottom:12px;"><h2>6 · Referencia de severidad y prioridad de errores</h2></div>
+  <section style="margin-bottom:20px;background:#fff;border-radius:12px;border:1px solid #EDECEA;overflow:hidden;">
+      <div style="padding:13px 20px;border-bottom:1px solid #EDECEA;background:#FAFAF8;">
+        <div style="font-size:10px;font-weight:500;color:#888;text-transform:uppercase;letter-spacing:.06em;">Referencia de severidad y prioridad de errores</div>
+      </div>
+      <table style="width:100%;border-collapse:collapse;">
+        <thead><tr style="background:#F5F4F0;">
+          <th style="padding:7px 16px;text-align:left;font-size:10px;font-weight:500;color:#888;text-transform:uppercase;">Severidad</th>
+          <th style="padding:7px 14px;text-align:left;font-size:10px;font-weight:500;color:#888;text-transform:uppercase;">Impacto</th>
+          <th style="padding:7px 14px;text-align:left;font-size:10px;font-weight:500;color:#888;text-transform:uppercase;">Ejemplos</th>
+          <th style="padding:7px 14px;text-align:left;font-size:10px;font-weight:500;color:#888;text-transform:uppercase;">Urgencia / Acción</th>
+        </tr></thead>
+        <tbody><tr style="border-top:1px solid #EDECEA;"><td style="padding:8px 16px;"><span style="font-size:12px;font-weight:600;padding:2px 10px;border-radius:20px;background:#EAF3DE;color:#3B6D11;white-space:nowrap;">Bajo</span> </td><td style="padding:8px 14px;font-size:13px;color:#3d3d3a;">Mínimo. No afecta funcionalidad principal.</td><td style="padding:8px 14px;font-size:13px;color:#888;">Errores tipográficos, detalles visuales.</td><td style="padding:8px 14px;font-size:13px;color:#3d3d3a;">Puede esperar.</td></tr><tr style="border-top:1px solid #EDECEA;"><td style="padding:8px 16px;"><span style="font-size:12px;font-weight:600;padding:2px 10px;border-radius:20px;background:#FFF9C4;color:#6B5900;white-space:nowrap;">Mediano</span> </td><td style="padding:8px 14px;font-size:13px;color:#3d3d3a;">Afecta funcionalidades secundarias.</td><td style="padding:8px 14px;font-size:13px;color:#888;">Botón no funcional con alternativa.</td><td style="padding:8px 14px;font-size:13px;color:#3d3d3a;">Planificar para próximos sprints.</td></tr><tr style="border-top:1px solid #EDECEA;"><td style="padding:8px 16px;"><span style="font-size:12px;font-weight:600;padding:2px 10px;border-radius:20px;background:#FAEEDA;color:#633806;white-space:nowrap;">Alto</span> </td><td style="padding:8px 14px;font-size:13px;color:#3d3d3a;">Afecta funcionalidades clave.</td><td style="padding:8px 14px;font-size:13px;color:#888;">Fallos en formularios críticos.</td><td style="padding:8px 14px;font-size:13px;color:#3d3d3a;">Requiere atención en la próxima versión.</td></tr><tr style="border-top:1px solid #EDECEA;"><td style="padding:8px 16px;"><span style="font-size:12px;font-weight:600;padding:2px 10px;border-radius:20px;background:#FCEBEB;color:#791F1F;white-space:nowrap;">Crítico</span> </td><td style="padding:8px 14px;font-size:13px;color:#3d3d3a;">Bloquea el sistema o pérdida de datos.</td><td style="padding:8px 14px;font-size:13px;color:#888;">Caída del sistema, fuga de datos.</td><td style="padding:8px 14px;font-size:13px;color:#3d3d3a;">Urgencia máxima. Hotfix inmediato.</td></tr></tbody>
+      </table>
+    </section>
+
+  <div style="text-align:center;padding:16px 0;font-size:11px;color:#aaa;">
+    Salus QA Reporter · 26/03/2026 20:07 · osde-devops / Desarrollo_Salus
+  </div>
+</div>
+</body></html>
