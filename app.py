@@ -837,7 +837,7 @@ def generate_report_html(form, demo_data=None):
     if prev_data_42 and prev_data_42.get("total",0) > 0:
         resueltos  = [i for i in prev_data_42["incidents"] if i["state"].lower() in ("closed","resolved","done","cerrado","resuelto")]
         prev_res = {
-            "uh_title": prev_data_42.get("uh_title", ""),
+            "uh_title": alcance_data.get("uh_title") if alcance_data else prev_data_42.get("uh_title", ""),
             "incidents": [],
             "total": 0,
             "by_sev": {},
@@ -864,7 +864,7 @@ def generate_report_html(form, demo_data=None):
         prev_sections += _incidents_block(
             prev_res,
             section_num="4.2",
-            title=f"Paquete de incidentes corregidos — Versión anterior ({prev_title_42})",
+            title=f"Paquete de incidentes corregidos ({prev_title_42})",
             bug_label="Detalle de bugs corregidos"
         )
     else:
@@ -872,7 +872,7 @@ def generate_report_html(form, demo_data=None):
         prev_sections += _incidents_block(
             {"uh_title":"","incidents":[],"total":0,"by_sev":{},"by_module":{}},
             section_num="4.2",
-            title="Paquete de incidentes corregidos — Versión anterior (N/A)",
+            title="Paquete de incidentes corregidos (N/A)",
             bug_label="Detalle de bugs corregidos"
         )
 
