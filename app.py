@@ -389,10 +389,23 @@ def _alcance_block(alcance_data):
     return html
 
 def _incidents_block(inc_data, section_num="4.1", title="Incidentes detectados durante las pruebas del ciclo", bug_label="Detalle de bugs"):
+    # Mostrar estructura completa incluso sin incidentes (similar a "No Aplica")
     if not inc_data or inc_data["total"] == 0:
-        return f"""<section style="margin-bottom:20px;background:#fff;border-radius:12px;
-                   border:1px solid #EDECEA;padding:16px 20px;">
-                   <p style="color:#888;font-size:13px;">No se encontraron incidentes.</p></section>"""
+        return f"""<section style="margin-bottom:20px;background:#fff;border-radius:12px;border:1px solid #EDECEA;overflow:hidden;">
+      <div style="padding:16px 20px;border-bottom:1px solid #EDECEA;background:#FAFAF8;">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <div>
+            <div style="font-size:11px;font-weight:700;color:{SECONDARY_COLOR};text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px;">{section_num}</div>
+            <div style="font-size:16px;font-weight:600;color:{PRIMARY_COLOR};margin-bottom:3px;">{title}</div>
+          </div>
+          <div style="text-align:right;background:{SECONDARY_COLOR};color:#fff;padding:8px 18px;border-radius:10px;">
+            <div style="font-size:10px;text-transform:uppercase;font-weight:600;opacity:0.8;">Total Incidentes</div>
+            <div style="font-size:24px;font-weight:700;">0</div>
+          </div>
+        </div>
+      </div>
+      <div style="padding:20px;text-align:center;color:#888;font-size:13px;background:#FAFAF8;">No se encontraron incidentes — N/A</div>
+    </section>"""
 
     total  = inc_data["total"]
     by_sev = inc_data["by_sev"]
@@ -414,7 +427,8 @@ def _incidents_block(inc_data, section_num="4.1", title="Incidentes detectados d
     # Ordenamiento por cantidad de incidentes (de mayor a menor)
     sorted_modules = sorted(inc_data["by_module"].items(), key=lambda x: sum(x[1].values()), reverse=True)
     
-    mod_labels = [m for m, _ in sorted_modules][:6]
+    # Truncar nombres de módulos a máximo 30 caracteres para mejor visualización en gráficos
+    mod_labels = [m[:30] + "..." if len(m) > 30 else m for m, _ in sorted_modules][:6]
     mod_vals   = [sum(v.values()) for _, v in sorted_modules][:6]
     mod_cols   = [SECONDARY_COLOR, ACCENT_COLOR, PRIMARY_COLOR, "#d1d1d1", "#8baeb0", "#487182"]
 
