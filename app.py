@@ -822,8 +822,15 @@ def generate_report_html(form, demo_data=None):
     prev_sections = ""
     
     # 4.2 Paquete de incidentes corregidos (ciclo anterior)
-    if prev_data and prev_data["total"] > 0:
+    if prev_data and prev_data.get("total",0) > 0:
         resueltos  = [i for i in prev_data["incidents"] if i["state"].lower() in ("closed","resolved","done","cerrado","resuelto")]
+        prev_res = {
+            "uh_title": prev_data.get("uh_title", ""),
+            "incidents": [],
+            "total": 0,
+            "by_sev": {},
+            "by_module": {}
+        }
         if resueltos:
             prev_res = dict(prev_data)
             prev_res["incidents"] = resueltos
@@ -831,7 +838,7 @@ def generate_report_html(form, demo_data=None):
             by_sev_r = {}
             by_mod_r = {}
             for i in resueltos:
-                s, m = i["sev"], i["module"]
+                s, m = i.get("sev","Bajo"), i.get("module","")
                 if s not in by_sev_r: by_sev_r[s] = []
                 by_sev_r[s].append(i)
                 if m not in by_mod_r: by_mod_r[m] = {}
@@ -839,12 +846,22 @@ def generate_report_html(form, demo_data=None):
                 by_mod_r[m][s] += 1
             prev_res["by_sev"] = by_sev_r
             prev_res["by_module"] = by_mod_r
-            prev_sections += _incidents_block(
-                prev_res,
-                section_num="4.2",
-                title=f"Paquete de incidentes corregidos — Versión anterior ({prev_data.get('uh_title','')})",
-                bug_label="Detalle de bugs corregidos"
-            )
+            prev_res["total"] = len(resueltos)
+
+        prev_sections += _incidents_block(
+            prev_res,
+            section_num="4.2",
+            title=f"Paquete de incidentes corregidos — Versión anterior ({prev_data.get('uh_title','')})",
+            bug_label="Detalle de bugs corregidos"
+        )
+    else:
+        # No hay datos de ciclo anterior, mostrar bloque vacío (no aplica)
+        prev_sections += _incidents_block(
+            {"uh_title":"","incidents":[],"total":0,"by_sev":{},"by_module":{}},
+            section_num="4.2",
+            title="Paquete de incidentes corregidos — Versión anterior (N/A)",
+            bug_label="Detalle de bugs corregidos"
+        )
 
     # 4.2.1 Ítems entregados pero no solucionados (del alcance ACTUAL)
     if alcance_data and isinstance(alcance_data.get("bugs"), list):
@@ -890,8 +907,19 @@ def generate_report_html(form, demo_data=None):
     if prev_data and isinstance(prev_data.get("incidents"), list):
         inc_list = prev_data["incidents"]
         pendientes = [i for i in inc_list if i.get("state","").lower() not in ("closed","resolved","done","cerrado","resuelto")]
-
         prev_pend = dict(prev_data)
+        prev_pend["uh_title"] = prev_data.get("uh_title","")
+    else:
+        pendientes = []
+        prev_pend = {
+            "uh_title": "",
+            "incidents": [],
+            "total": 0,
+            "by_sev": {},
+            "by_module": {}
+        }
+
+    if pendientes:
         prev_pend["incidents"] = pendientes
         prev_pend["total"] = len(pendientes)
 
@@ -907,13 +935,14 @@ def generate_report_html(form, demo_data=None):
 
         prev_pend["by_sev"] = by_sev_p
         prev_pend["by_module"] = by_mod_p
+        prev_pend["total"] = len(pendientes)
 
-        prev_sections += _incidents_block(
-            prev_pend,
-            section_num="4.3",
-            title=f"Incidencias pendientes de corrección de la Versión anterior ({prev_data.get('uh_title','')})",
-            bug_label="Detalle de bugs pendientes"
-        )
+    prev_sections += _incidents_block(
+        prev_pend,
+        section_num="4.3",
+        title=f"Incidencias pendientes de corrección de la Versión anterior ({prev_pend.get('uh_title','')})",
+        bug_label="Detalle de bugs pendientes"
+    )
 
 
     html = f"""<!DOCTYPE html>
