@@ -887,30 +887,34 @@ def generate_report_html(form, demo_data=None):
             )
 
     # 4.3 Incidencias pendientes de corrección (ciclo anterior)
-    if prev_data and isinstance(prev_data.get("incidents"), list) and prev_data["total"] > 0:
+    if prev_data and isinstance(prev_data.get("incidents"), list):
         inc_list = prev_data["incidents"]
         pendientes = [i for i in inc_list if i.get("state","").lower() not in ("closed","resolved","done","cerrado","resuelto")]
-        if pendientes:
-            prev_pend = dict(prev_data)
-            prev_pend["incidents"] = pendientes
-            prev_pend["total"] = len(pendientes)
-            by_sev_p = {}
-            by_mod_p = {}
-            for i in pendientes:
-                s, m = i["sev"], i["module"]
-                if s not in by_sev_p: by_sev_p[s] = []
-                by_sev_p[s].append(i)
-                if m not in by_mod_p: by_mod_p[m] = {}
-                if s not in by_mod_p[m]: by_mod_p[m][s] = 0
-                by_mod_p[m][s] += 1
-            prev_pend["by_sev"] = by_sev_p
-            prev_pend["by_module"] = by_mod_p
-            prev_sections += _incidents_block(
-                prev_pend,
-                section_num="4.3",
-                title=f"Incidencias pendientes de corrección de la Versión anterior ({prev_data.get('uh_title','')})",
-                bug_label="Detalle de bugs pendientes"
-            )
+
+        prev_pend = dict(prev_data)
+        prev_pend["incidents"] = pendientes
+        prev_pend["total"] = len(pendientes)
+
+        by_sev_p = {}
+        by_mod_p = {}
+        for i in pendientes:
+            s, m = i.get("sev", "Bajo"), i.get("module", "")
+            if s not in by_sev_p: by_sev_p[s] = []
+            by_sev_p[s].append(i)
+            if m not in by_mod_p: by_mod_p[m] = {}
+            if s not in by_mod_p[m]: by_mod_p[m][s] = 0
+            by_mod_p[m][s] += 1
+
+        prev_pend["by_sev"] = by_sev_p
+        prev_pend["by_module"] = by_mod_p
+
+        prev_sections += _incidents_block(
+            prev_pend,
+            section_num="4.3",
+            title=f"Incidencias pendientes de corrección de la Versión anterior ({prev_data.get('uh_title','')})",
+            bug_label="Detalle de bugs pendientes"
+        )
+
 
     html = f"""<!DOCTYPE html>
 <html lang="es">
