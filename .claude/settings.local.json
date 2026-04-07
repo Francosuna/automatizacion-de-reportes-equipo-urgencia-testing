@@ -1,0 +1,24 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python -c ':*)",
+      "Bash(python3 -c \"import ast; ast.parse\\(open\\('app.py'\\).read\\(\\)\\); print\\('OK'\\)\")",
+      "Bash(py -c \"import ast; ast.parse\\(open\\('app.py'\\).read\\(\\)\\); print\\('OK'\\)\")",
+      "Bash(where python:*)",
+      "Bash(where python3:*)",
+      "Bash(where py:*)",
+      "Read(//c/Users/Franco Osuna/AppData/Local/Programs/**)",
+      "Bash(ls /c/Python*)",
+      "Read(//c//**)",
+      "Read(//c/Users/Franco Osuna/AppData/Local//**)",
+      "Bash(powershell.exe -Command \"Get-Command python | Select-Object -ExpandProperty Source\")",
+      "Bash(powershell.exe -Command \"python --version\")",
+      "Bash(powershell.exe -Command \"& 'C:\\\\Users\\\\Franco Osuna\\\\AppData\\\\Local\\\\Microsoft\\\\WindowsApps\\\\python.exe' --version\")",
+      "Bash(powershell.exe -Command ':*)",
+      "Bash(powershell.exe -Command 'Get-ChildItem '\\\\''HKLM:\\\\SOFTWARE\\\\Python\\\\PythonCore'\\\\'' -ErrorAction SilentlyContinue | ForEach-Object { Get-ItemProperty \\(Join-Path $_.PSPath '\\\\''InstallPath'\\\\''\\) -ErrorAction SilentlyContinue } | Select-Object '\\\\''\\(default\\)'\\\\'', ExecutablePath')",
+      "Bash(powershell.exe -Command \"& py --version\")",
+      "Bash(powershell.exe -Command \"where.exe python\")",
+      "Bash(powershell.exe -Command \"where.exe py\")"
+    ]
+  }
+}
