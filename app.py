@@ -345,13 +345,15 @@ def _alcance_block(alcance_data):
         return f'<span style="font-size:11px;font-weight:600;padding:2px 10px;border-radius:20px;{style}">{state}</span>'
 
     def build_rows(items):
+        closed_states = {"closed","resolved","done","cerrado","resuelto"}
+        sorted_items = sorted(items, key=lambda x: (1 if x["state"].lower() in closed_states else 0))
         return "".join(
             f'<tr style="border-top:1px solid #EDECEA;">'
             f'<td style="padding:10px 14px;font-size:12px;color:#888;">#{item["id"]}</td>'
             f'<td style="padding:10px 14px;font-size:13px;color:#3d3d3a;">{item["title"]}</td>'
             f'<td style="padding:10px 10px;text-align:center;">{state_pill(item["state"])}</td>'
             f'</tr>'
-            for item in items
+            for item in sorted_items
         )
 
     html = f"""
@@ -754,16 +756,8 @@ def generate_report_html(form, demo_data=None):
 
         alcance_data = build_alcance_data(alcance_id) if alcance_id else None
         inc_data     = build_incident_data(uh_id)
-        # 4.2: ciclo anterior preferido, fallback a UH de alcance cuando no trae datos
-        if prev_uh_id:
-            prev_data_42 = build_incident_data(prev_uh_id)
-            if prev_data_42 and prev_data_42.get("total",0) == 0 and alcance_id:
-                # Si el ciclo anterior no tiene incidentes, mostrar data de alcance en 4.2
-                prev_data_42 = build_incident_data(alcance_id)
-        elif alcance_id:
-            prev_data_42 = build_incident_data(alcance_id)
-        else:
-            prev_data_42 = None
+        # 4.2 / 4.2.1: bugs del alcance actual (alcance_id), separados por estado (closed vs no-closed)
+        prev_data_42 = build_incident_data(alcance_id) if alcance_id else None
         # 4.3: pendiente de corrección solo a partir del ciclo anterior real
         prev_data_43 = build_incident_data(prev_uh_id) if prev_uh_id else None
 
@@ -877,22 +871,10 @@ def generate_report_html(form, demo_data=None):
             bug_label="Detalle de bugs corregidos"
         )
 
-    # 4.2.1 Ítems entregados pero no solucionados (del alcance ACTUAL)
-    if alcance_data and isinstance(alcance_data.get("bugs"), list):
-        bugs_list = alcance_data["bugs"]
-        unsolved_ids = [b["id"] for b in bugs_list if b.get("state","").lower() not in ("closed","resolved","done","cerrado","resuelto")]
-        if unsolved_ids:
-            unsolved_wis = get_work_items_batch(unsolved_ids)
-            unsolved_incidents = []
-            for wi in unsolved_wis:
-                f = wi.get("fields",{})
-                # Extraer criticidad desde el WorkItem completo (ya que _alcance_data original no lo trae)
-                sev = _norm_sev(f.get("Microsoft.VSTS.Common.Severity") or f.get("Microsoft.VSTS.Common.Priority"))
-                title = f.get("System.Title","Sin título")
-                state = f.get("System.State","")
-                # Al ser de alcance, no tenemos un módulo específico (a menos que iteremos el parent), le ponemos "Alcance Planificado"
-                unsolved_incidents.append({"id":wi["id"],"title":title,"state":state,"sev":sev,"module":"Alcance Planificado"})
-            
+    # 4.2.1 Ítems entregados pero no solucionados (del alcance actual, misma fuente que 4.2)
+    if prev_data_42 and isinstance(prev_data_42.get("incidents"), list):
+        unsolved_incidents = [i for i in prev_data_42["incidents"] if i.get("state","").lower() not in ("closed","resolved","done","cerrado","resuelto")]
+        if unsolved_incidents:
             by_sev_u = {}
             by_mod_u = {}
             for i in unsolved_incidents:
@@ -902,10 +884,10 @@ def generate_report_html(form, demo_data=None):
                 if m not in by_mod_u: by_mod_u[m] = {}
                 if s not in by_mod_u[m]: by_mod_u[m][s] = 0
                 by_mod_u[m][s] += 1
-                
+
             unsolved_inc_data = {
                 "total": len(unsolved_incidents),
-                "uh_title": alcance_data["uh_title"],
+                "uh_title": prev_data_42["uh_title"],
                 "incidents": sorted(unsolved_incidents, key=lambda x: _sev_order(x.get("sev","Bajo"))),
                 "by_sev": by_sev_u,
                 "by_module": by_mod_u,
