@@ -636,9 +636,9 @@ def _incidents_block(inc_data, section_num="4.1", title="Incidentes detectados d
            onmouseover="this.style.background='#F1F0EC'" onmouseout="this.style.background='#FAFAF8'"
            onclick="var tbl=this.closest('section').querySelector('.mod-table'); var arrow=this.querySelector('.mod-arrow'); if(tbl.style.display==='none'){{ tbl.style.display='table'; arrow.style.transform='rotate(90deg)'; }} else {{ tbl.style.display='none'; arrow.style.transform='rotate(0deg)'; }}">
         <span style="font-size:12px;font-weight:600;color:#5F5E5A;text-transform:uppercase;letter-spacing:.06em;">Desglose por módulo / funcionalidad ({len(inc_data['by_module'])} módulos)</span>
-        <span class="mod-arrow" style="font-size:12px;color:#888;transition:transform .2s;display:inline-block;transform:rotate(0deg);">&#9654;</span>
+        <span class="mod-arrow" style="font-size:12px;color:#888;transition:transform .2s;display:inline-block;transform:rotate(90deg);">&#9654;</span>
       </div>
-      <table class="mod-table" style="width:100%;border-collapse:collapse;margin-bottom:8px;display:none;">
+      <table class="mod-table" style="width:100%;border-collapse:collapse;margin-bottom:8px;display:table;">
         <thead><tr style="background:#F5F4F0;">
           <th style="padding:7px 16px;text-align:left;font-size:10px;font-weight:500;color:#888;text-transform:uppercase;">Módulo</th>
           <th style="padding:7px 8px;text-align:center;font-size:10px;font-weight:500;color:#888;text-transform:uppercase;">Total</th>
