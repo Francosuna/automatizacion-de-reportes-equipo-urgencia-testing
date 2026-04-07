@@ -1473,9 +1473,15 @@ def historial_delete(informe_id):
     return redirect(url_for("historial"))
 
 # ── Startup ────────────────────────────────────────────────────
-init_db()
+try:
+    init_db()
+except Exception as e:
+    print(f"[WARN] init_db falló: {e}")
 with app.app_context():
-    db.create_all()
+    try:
+        db.create_all()
+    except Exception as e:
+        print(f"[WARN] db.create_all falló: {e}")
 
 if __name__ == "__main__":
     app.run(debug=False, host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
