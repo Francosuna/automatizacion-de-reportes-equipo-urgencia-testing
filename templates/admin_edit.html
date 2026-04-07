@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Editar equipo — QA Reporter</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Epilogue:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #07080A; --surface: #0E1117; --surface2: #131620;
+      --border: #1C2030; --border2: #252A3D;
+      --text: #E4E7F0; --muted: #5A607A; --muted2: #7D849E;
+      --accent: #5B7FFF; --accent-dim: #0D1140; --accent-border: #1E2E8F;
+      --red: #F25757; --red-dim: #2A1010; --red-border: #5C1D1D;
+    }
+    body {
+      font-family: "Epilogue", sans-serif;
+      background: var(--bg); color: var(--text);
+      min-height: 100vh; padding: 40px 20px;
+      animation: fadeIn .3s ease;
+    }
+    .container { max-width: 620px; margin: 0 auto; }
+    .eyebrow {
+      font-size: 10px; font-weight: 700; letter-spacing: .18em;
+      text-transform: uppercase; color: var(--accent);
+      margin-bottom: 6px; display: flex; align-items: center; gap: 8px;
+    }
+    .eyebrow::before {
+      content: ""; width: 6px; height: 6px; border-radius: 50%;
+      background: var(--accent); box-shadow: 0 0 8px var(--accent);
+    }
+    h1 { font-family: "Syne", sans-serif; font-size: 24px; font-weight: 800; margin-bottom: 28px; }
+    .back-link {
+      display: inline-flex; align-items: center; gap: 6px;
+      font-size: 12px; color: var(--muted); text-decoration: none;
+      margin-bottom: 24px; transition: color .15s;
+    }
+    .back-link:hover { color: var(--muted2); }
+    .section {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 12px; overflow: hidden;
+    }
+    .section-header {
+      padding: 14px 20px; border-bottom: 1px solid var(--border);
+      background: var(--surface2);
+      font-family: "Syne", sans-serif; font-size: 13px; font-weight: 700;
+      color: var(--text); border-top: 2px solid var(--accent);
+    }
+    .section-body { padding: 24px 20px; }
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px; }
+    @media(max-width: 500px) { .grid-2 { grid-template-columns: 1fr; } }
+    .field { display: flex; flex-direction: column; gap: 5px; margin-bottom: 14px; }
+    .field:last-of-type { margin-bottom: 0; }
+    .field label {
+      font-size: 10px; font-weight: 600; color: var(--muted);
+      text-transform: uppercase; letter-spacing: .08em;
+    }
+    .field input {
+      font-family: "Epilogue", sans-serif; font-size: 13px; color: var(--text);
+      background: var(--bg); border: 1px solid var(--border2); border-radius: 8px;
+      padding: 10px 12px; outline: none; transition: border-color .15s; width: 100%;
+    }
+    .field input[type="password"] { font-family: "JetBrains Mono", monospace; }
+    .field input:focus { border-color: var(--accent); }
+    .field input::placeholder { color: var(--muted); }
+    .hint { font-size: 11px; color: var(--muted); margin-top: 2px; line-height: 1.5; }
+    .actions { display: flex; gap: 10px; margin-top: 24px; }
+    .btn-primary {
+      font-family: "Syne", sans-serif; font-size: 13px; font-weight: 700;
+      padding: 10px 24px; border-radius: 8px; border: none;
+      background: var(--accent); color: var(--bg); cursor: pointer;
+      transition: opacity .15s; box-shadow: 0 0 16px rgba(91,127,255,.2);
+    }
+    .btn-primary:hover { opacity: .88; }
+    .btn-cancel {
+      font-family: "Epilogue", sans-serif; font-size: 13px; font-weight: 500;
+      padding: 10px 24px; border-radius: 8px; border: 1px solid var(--border2);
+      background: transparent; color: var(--muted2); cursor: pointer;
+      text-decoration: none; display: inline-flex; align-items: center;
+      transition: color .15s, border-color .15s;
+    }
+    .btn-cancel:hover { color: var(--text); border-color: var(--muted); }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="eyebrow">QA Reporter · Admin</div>
+    <h1>Editar equipo</h1>
+    <a href="/admin" class="back-link">← Volver a equipos</a>
+
+    <div class="section">
+      <div class="section-header">{{ team.name }}</div>
+      <div class="section-body">
+        <form method="POST">
+          <div class="grid-2">
+            <div class="field">
+              <label>Nombre del equipo</label>
+              <input type="text" name="name" value="{{ team.name }}" required>
+            </div>
+            <div class="field">
+              <label>Slug</label>
+              <input type="text" name="slug" value="{{ team.slug }}" required>
+            </div>
+          </div>
+          <div class="grid-2">
+            <div class="field">
+              <label>Organización Azure</label>
+              <input type="text" name="azure_org" value="{{ team.azure_org }}">
+            </div>
+            <div class="field">
+              <label>Proyecto Azure</label>
+              <input type="text" name="azure_project" value="{{ team.azure_project }}">
+            </div>
+          </div>
+          <div class="field">
+            <label>Nuevo PAT <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:10px;">(dejar vacío para no cambiar)</span></label>
+            <input type="password" name="azure_pat" placeholder="••••••••••••">
+            <span class="hint">El PAT actual se mantiene si no ingresás uno nuevo.</span>
+          </div>
+          <div class="actions">
+            <button type="submit" class="btn-primary">Guardar cambios</button>
+            <a href="/admin" class="btn-cancel">Cancelar</a>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

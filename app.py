@@ -5,20 +5,120 @@ replicando el formato real del equipo.
 """
 
 import os, json, base64, urllib.request, urllib.error
+import psycopg2, psycopg2.extras
 from datetime import datetime
 from collections import defaultdict
-from flask import Flask, render_template, request, Response, jsonify
+from dotenv import load_dotenv
+from flask import Flask, render_template, request, Response, jsonify, session, redirect, url_for, g
+from flask_sqlalchemy import SQLAlchemy
+
+load_dotenv()
 
 app = Flask(__name__)
+app.secret_key = os.environ.get("SECRET_KEY", os.urandom(24))
 
-ORGANIZATION = os.environ.get("AZURE_ORG",     "osde-devops")
-PROJECT      = os.environ.get("AZURE_PROJECT", "Desarrollo_Salus")
-PAT          = os.environ.get("AZURE_DEVOPS_PAT", "")
-BASE_URL     = f"https://dev.azure.com/{ORGANIZATION}/{PROJECT}/_apis"
+ORGANIZATION   = os.environ.get("AZURE_ORG",        "osde-devops")
+PROJECT        = os.environ.get("AZURE_PROJECT",     "Desarrollo_Salus")
+PAT            = os.environ.get("AZURE_DEVOPS_PAT",  "")
+DATABASE_URL   = os.environ.get("DATABASE_URL",      "")
+ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD",    "admin123")
 
+# ── SQLAlchemy — Informe model ──────────────────────────────────
+_sa_url = DATABASE_URL.replace("postgres://", "postgresql://") if DATABASE_URL else "sqlite:///informes.db"
+app.config["SQLALCHEMY_DATABASE_URI"] = _sa_url
+app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+db = SQLAlchemy(app)
+
+class Informe(db.Model):
+    __tablename__ = "informes"
+    id               = db.Column(db.Integer, primary_key=True)
+    equipo           = db.Column(db.String(100), nullable=False)
+    producto         = db.Column(db.String(100), nullable=False)
+    version          = db.Column(db.String(50))
+    ciclo            = db.Column(db.String(50))
+    fecha_generacion = db.Column(db.DateTime, default=datetime.utcnow)
+    html             = db.Column(db.Text, nullable=False)
+
+# ── DB ─────────────────────────────────────────────────────────
+def get_db():
+    return psycopg2.connect(DATABASE_URL, cursor_factory=psycopg2.extras.RealDictCursor)
+
+def init_db():
+    if not DATABASE_URL:
+        return
+    with get_db() as conn:
+        with conn.cursor() as cur:
+            cur.execute("""
+                CREATE TABLE IF NOT EXISTS teams (
+                    id            SERIAL PRIMARY KEY,
+                    name          TEXT NOT NULL UNIQUE,
+                    slug          TEXT NOT NULL UNIQUE,
+                    azure_org     TEXT NOT NULL DEFAULT 'osde-devops',
+                    azure_project TEXT NOT NULL DEFAULT 'Desarrollo_Salus',
+                    azure_pat     TEXT NOT NULL,
+                    created_at    TIMESTAMPTZ DEFAULT NOW()
+                )
+            """)
+        conn.commit()
+
+def _get_all_teams():
+    if not DATABASE_URL:
+        return []
+    with get_db() as conn:
+        with conn.cursor() as cur:
+            cur.execute("SELECT id, name, slug, azure_org, azure_project FROM teams ORDER BY name")
+            return cur.fetchall()
+
+def _get_team_by_id(team_id):
+    with get_db() as conn:
+        with conn.cursor() as cur:
+            cur.execute("SELECT * FROM teams WHERE id = %s", (team_id,))
+            return cur.fetchone()
+
+def _create_team(name, slug, azure_org, azure_project, azure_pat):
+    with get_db() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                "INSERT INTO teams (name, slug, azure_org, azure_project, azure_pat) VALUES (%s,%s,%s,%s,%s)",
+                (name, slug, azure_org, azure_project, azure_pat)
+            )
+        conn.commit()
+
+def _update_team(team_id, name, slug, azure_org, azure_project, azure_pat):
+    with get_db() as conn:
+        with conn.cursor() as cur:
+            if azure_pat:
+                cur.execute(
+                    "UPDATE teams SET name=%s, slug=%s, azure_org=%s, azure_project=%s, azure_pat=%s WHERE id=%s",
+                    (name, slug, azure_org, azure_project, azure_pat, team_id)
+                )
+            else:
+                cur.execute(
+                    "UPDATE teams SET name=%s, slug=%s, azure_org=%s, azure_project=%s WHERE id=%s",
+                    (name, slug, azure_org, azure_project, team_id)
+                )
+        conn.commit()
+
+def _delete_team(team_id):
+    with get_db() as conn:
+        with conn.cursor() as cur:
+            cur.execute("DELETE FROM teams WHERE id = %s", (team_id,))
+        conn.commit()
+
+# ── Admin auth ─────────────────────────────────────────────────
+def _admin_authed():
+    return session.get("admin_ok") is True
+
+# ── Azure config via Flask g (fallback a env vars) ─────────────
 def _headers():
-    token = base64.b64encode(f":{PAT}".encode()).decode()
+    pat = getattr(g, "team_pat", PAT)
+    token = base64.b64encode(f":{pat}".encode()).decode()
     return {"Content-Type": "application/json", "Authorization": f"Basic {token}"}
+
+def _base_url():
+    org  = getattr(g, "team_org",  ORGANIZATION)
+    proj = getattr(g, "team_project", PROJECT)
+    return f"https://dev.azure.com/{org}/{proj}/_apis"
 
 def _get(url):
     req = urllib.request.Request(url, headers=_headers())
@@ -32,24 +132,24 @@ def _get(url):
 
 # ── Azure DevOps ───────────────────────────────────────────────
 def get_test_plan(plan_id):
-    return _get(f"{BASE_URL}/testplan/plans/{plan_id}?api-version=7.0")
+    return _get(f"{_base_url()}/testplan/plans/{plan_id}?api-version=7.0")
 
 def get_test_suites(plan_id):
-    d = _get(f"{BASE_URL}/testplan/Plans/{plan_id}/suites?api-version=7.0")
+    d = _get(f"{_base_url()}/testplan/Plans/{plan_id}/suites?api-version=7.0")
     return d.get("value", [])
 
 def get_test_points(plan_id, suite_id):
-    d = _get(f"{BASE_URL}/testplan/Plans/{plan_id}/Suites/{suite_id}/TestPoint?api-version=7.0")
+    d = _get(f"{_base_url()}/testplan/Plans/{plan_id}/Suites/{suite_id}/TestPoint?api-version=7.0")
     return d.get("value", [])
 
 def get_work_item(wi_id):
-    return _get(f"{BASE_URL}/wit/workitems/{wi_id}?$expand=relations&api-version=7.0")
+    return _get(f"{_base_url()}/wit/workitems/{wi_id}?$expand=relations&api-version=7.0")
 
 def get_work_items_batch(wi_ids):
     if not wi_ids:
         return []
     ids_str = ",".join(str(i) for i in wi_ids)
-    d = _get(f"{BASE_URL}/wit/workitems?ids={ids_str}&$expand=fields&api-version=7.0")
+    d = _get(f"{_base_url()}/wit/workitems?ids={ids_str}&$expand=fields&api-version=7.0")
     return d.get("value", [])
 
 def get_work_item_children(wi_id):
@@ -1123,6 +1223,11 @@ def generate_report_html(form, demo_data=None):
 
 # ── Routes ─────────────────────────────────────────────────────
 @app.route("/")
+def home():
+    total = Informe.query.count()
+    return render_template("home.html", total_informes=total)
+
+@app.route("/generar")
 def index():
     return render_template("index.html")
 
@@ -1150,10 +1255,24 @@ def workitem_name():
     
     return jsonify({"name": name, "type": wi_type})
 
+@app.route("/api/teams")
+def api_teams():
+    teams = _get_all_teams()
+    return jsonify([{"id": t["id"], "name": t["name"]} for t in teams])
+
 @app.route("/generate", methods=["POST"])
 def generate():
-    if not PAT:
-        return "Error: AZURE_DEVOPS_PAT no configurado.", 500
+    team_id = request.form.get("team_id", "").strip()
+    if team_id.isdigit() and DATABASE_URL:
+        team = _get_team_by_id(int(team_id))
+        if team:
+            g.team_pat     = team["azure_pat"]
+            g.team_org     = team["azure_org"]
+            g.team_project = team["azure_project"]
+        else:
+            return "Error: equipo no encontrado.", 400
+    elif not PAT:
+        return "Error: AZURE_DEVOPS_PAT no configurado y no se seleccionó equipo.", 500
     html, err = generate_report_html(request.form)
     if err:
         return f"Error al generar el informe: {err}", 500
@@ -1258,6 +1377,116 @@ def demo_report():
     })
     
     return Response(html, mimetype="text/html")
+
+# ── Admin routes ───────────────────────────────────────────────
+@app.route("/admin/login", methods=["GET", "POST"])
+def admin_login():
+    error = None
+    if request.method == "POST":
+        if request.form.get("password") == ADMIN_PASSWORD:
+            session["admin_ok"] = True
+            return redirect(url_for("admin"))
+        error = "Contraseña incorrecta."
+    return render_template("admin_login.html", error=error)
+
+@app.route("/admin/logout", methods=["POST"])
+def admin_logout():
+    session.pop("admin_ok", None)
+    return redirect(url_for("admin_login"))
+
+@app.route("/admin")
+def admin():
+    if not _admin_authed():
+        return redirect(url_for("admin_login"))
+    teams = _get_all_teams()
+    return render_template("admin.html", teams=teams)
+
+@app.route("/admin/new", methods=["POST"])
+def admin_new():
+    if not _admin_authed():
+        return redirect(url_for("admin_login"))
+    name    = request.form.get("name", "").strip()
+    slug    = request.form.get("slug", "").strip()
+    org     = request.form.get("azure_org", ORGANIZATION).strip()
+    project = request.form.get("azure_project", PROJECT).strip()
+    pat     = request.form.get("azure_pat", "").strip()
+    if not name or not slug or not pat:
+        return redirect(url_for("admin"))
+    _create_team(name, slug, org, project, pat)
+    return redirect(url_for("admin"))
+
+@app.route("/admin/edit/<int:team_id>", methods=["GET", "POST"])
+def admin_edit(team_id):
+    if not _admin_authed():
+        return redirect(url_for("admin_login"))
+    if request.method == "POST":
+        name    = request.form.get("name", "").strip()
+        slug    = request.form.get("slug", "").strip()
+        org     = request.form.get("azure_org", ORGANIZATION).strip()
+        project = request.form.get("azure_project", PROJECT).strip()
+        pat     = request.form.get("azure_pat", "").strip()
+        _update_team(team_id, name, slug, org, project, pat)
+        return redirect(url_for("admin"))
+    team = _get_team_by_id(team_id)
+    if not team:
+        return redirect(url_for("admin"))
+    return render_template("admin_edit.html", team=team)
+
+@app.route("/admin/delete/<int:team_id>", methods=["POST"])
+def admin_delete(team_id):
+    if not _admin_authed():
+        return redirect(url_for("admin_login"))
+    _delete_team(team_id)
+    return redirect(url_for("admin"))
+
+# ── Historial routes ───────────────────────────────────────────
+@app.route("/save", methods=["POST"])
+def save_informe():
+    equipo   = request.form.get("equipo", "").strip()
+    producto = request.form.get("producto", "").strip()
+    version  = request.form.get("version", "").strip()
+    ciclo    = request.form.get("ciclo", "").strip()
+    html     = request.form.get("html_content", "")
+    if not equipo or not producto or not html:
+        return jsonify({"error": "Faltan campos requeridos"}), 400
+    informe = Informe(equipo=equipo, producto=producto,
+                      version=version, ciclo=ciclo, html=html)
+    db.session.add(informe)
+    db.session.commit()
+    return jsonify({"ok": True, "id": informe.id})
+
+@app.route("/historial")
+def historial():
+    informes = Informe.query.order_by(Informe.fecha_generacion.desc()).all()
+    grupos = {}
+    for inf in informes:
+        grupos.setdefault(inf.equipo, {}).setdefault(inf.producto, []).append(inf)
+    return render_template("historial.html", grupos=grupos)
+
+@app.route("/historial/<int:informe_id>/download")
+def historial_download(informe_id):
+    inf = db.get_or_404(Informe, informe_id)
+    filename = f"informe_{inf.equipo}_{inf.producto}_{inf.version}_ciclo{inf.ciclo}.html"
+    filename = filename.replace(" ", "_").lower()
+    return Response(inf.html, mimetype="text/html",
+                    headers={"Content-Disposition": f"attachment; filename={filename}"})
+
+@app.route("/historial/<int:informe_id>/preview")
+def historial_preview(informe_id):
+    inf = db.get_or_404(Informe, informe_id)
+    return Response(inf.html, mimetype="text/html")
+
+@app.route("/historial/<int:informe_id>/delete", methods=["POST"])
+def historial_delete(informe_id):
+    inf = db.get_or_404(Informe, informe_id)
+    db.session.delete(inf)
+    db.session.commit()
+    return redirect(url_for("historial"))
+
+# ── Startup ────────────────────────────────────────────────────
+init_db()
+with app.app_context():
+    db.create_all()
 
 if __name__ == "__main__":
     app.run(debug=False, host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))

@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Historial — QA Reporter</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Epilogue:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #07080A; --surface: #0E1117; --surface2: #131620;
+      --border: #1C2030; --border2: #252A3D;
+      --text: #E4E7F0; --muted: #5A607A; --muted2: #7D849E;
+      --accent: #5B7FFF; --accent-dim: #0D1140; --accent-border: #1E2E8F;
+      --red: #F25757; --red-dim: #2A1010; --red-border: #5C1D1D;
+    }
+    body { font-family: "Epilogue", sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; padding: 40px 20px; animation: fadeIn .3s ease; }
+    .container { max-width: 960px; margin: 0 auto; }
+
+    /* Topbar */
+    .topbar { display: flex; align-items: flex-end; justify-content: space-between; margin-bottom: 32px; padding-bottom: 22px; border-bottom: 1px solid var(--border); flex-wrap: wrap; gap: 14px; }
+    .eyebrow { font-size: 10px; font-weight: 700; letter-spacing: .18em; text-transform: uppercase; color: var(--accent); margin-bottom: 6px; display: flex; align-items: center; gap: 8px; }
+    .eyebrow::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 8px var(--accent); flex-shrink: 0; }
+    h1 { font-family: "Syne", sans-serif; font-size: 26px; font-weight: 800; }
+    .back-link { font-family: "Epilogue", sans-serif; font-size: 12px; color: var(--muted); text-decoration: none; border: 1px solid var(--border); border-radius: 8px; padding: 8px 16px; transition: color .15s, border-color .15s; }
+    .back-link:hover { color: var(--text); border-color: var(--border2); }
+
+    /* Search */
+    .search-bar { margin-bottom: 28px; }
+    .search-input-wrap { position: relative; }
+    .search-input-wrap input {
+      font-family: "Epilogue", sans-serif; font-size: 13px; color: var(--text);
+      background: var(--surface); border: 1px solid var(--border2); border-radius: 10px;
+      padding: 10px 16px 10px 40px; width: 100%; outline: none;
+      transition: border-color .15s;
+    }
+    .search-input-wrap input:focus { border-color: var(--accent); }
+    .search-input-wrap input::placeholder { color: var(--muted); }
+    .search-icon { position: absolute; left: 13px; top: 50%; transform: translateY(-50%); color: var(--muted); pointer-events: none; }
+    .search-count { font-size: 11px; color: var(--muted); margin-top: 8px; font-family: "JetBrains Mono", monospace; }
+
+    /* Groups */
+    .equipo-group { margin-bottom: 44px; }
+    .equipo-title { font-family: "Syne", sans-serif; font-size: 10px; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; color: var(--muted); margin-bottom: 18px; display: flex; align-items: center; gap: 12px; }
+    .equipo-title::after { content: ""; flex: 1; height: 1px; background: var(--border); }
+    .producto-group { margin-bottom: 18px; }
+    .producto-badge { font-family: "JetBrains Mono", monospace; font-size: 11px; font-weight: 500; color: var(--accent); padding: 4px 12px; background: var(--accent-dim); border: 1px solid var(--accent-border); border-radius: 6px; display: inline-block; margin-bottom: 10px; }
+
+    /* Table */
+    .card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+    .card::before { content: ""; display: block; height: 2px; background: var(--border2); }
+    table { width: 100%; border-collapse: collapse; }
+    thead tr { background: var(--surface2); }
+    th { font-size: 9px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .1em; padding: 11px 18px; text-align: left; }
+    td { font-size: 13px; color: var(--text); padding: 14px 18px; border-top: 1px solid var(--border); vertical-align: middle; }
+    td.mono { font-family: "JetBrains Mono", monospace; font-size: 12px; color: var(--muted2); }
+    tbody tr { transition: background .12s; }
+    tbody tr:hover { background: var(--surface2); }
+    tbody tr.hidden-row { display: none; }
+    .actions-cell { display: flex; gap: 8px; align-items: center; }
+
+    .btn-view { font-family: "Epilogue", sans-serif; font-size: 11px; font-weight: 600; padding: 6px 14px; border-radius: 6px; cursor: pointer; background: var(--surface2); color: var(--muted2); border: 1px solid var(--border2); transition: border-color .15s, color .15s; }
+    .btn-view:hover { border-color: var(--accent-border); color: var(--accent); }
+    .btn-dl { font-family: "Epilogue", sans-serif; font-size: 11px; font-weight: 600; padding: 6px 14px; border-radius: 6px; cursor: pointer; text-decoration: none; display: inline-block; transition: background .15s, border-color .15s; background: var(--accent-dim); color: var(--accent); border: 1px solid var(--accent-border); }
+    .btn-dl:hover { background: #0A1560; border-color: var(--accent); }
+    .btn-del { font-family: "Epilogue", sans-serif; font-size: 11px; font-weight: 600; padding: 6px 14px; border-radius: 6px; cursor: pointer; background: transparent; color: var(--red); border: 1px solid var(--red-border); transition: background .15s; }
+    .btn-del:hover { background: var(--red-dim); }
+
+    .empty { text-align: center; padding: 80px 20px; color: var(--muted); }
+    .empty p { font-size: 15px; margin-bottom: 16px; }
+    .empty a { color: var(--accent); text-decoration: none; font-weight: 500; }
+    .no-results { text-align: center; padding: 48px 20px; color: var(--muted); font-size: 14px; display: none; }
+
+    /* Preview modal */
+    .preview-modal { display: none; position: fixed; inset: 0; z-index: 1000; flex-direction: column; background: var(--bg); }
+    .preview-modal.open { display: flex; }
+    .preview-bar { display: flex; align-items: center; gap: 12px; padding: 12px 18px; background: var(--surface); border-bottom: 1px solid var(--border); flex-shrink: 0; }
+    .preview-bar-title { font-family: "Syne", sans-serif; font-size: 14px; font-weight: 700; color: var(--text); flex: 1; }
+    .preview-actions { display: flex; gap: 8px; }
+    .preview-close { font-family: "Epilogue", sans-serif; font-size: 12px; font-weight: 600; padding: 7px 16px; border-radius: 6px; border: 1px solid var(--border2); background: transparent; color: var(--muted2); cursor: pointer; transition: color .15s, border-color .15s; }
+    .preview-close:hover { color: var(--text); border-color: var(--muted); }
+    .preview-dl { font-family: "Epilogue", sans-serif; font-size: 12px; font-weight: 600; padding: 7px 16px; border-radius: 6px; border: 1px solid var(--accent-border); background: var(--accent-dim); color: var(--accent); cursor: pointer; text-decoration: none; transition: background .15s; }
+    .preview-dl:hover { background: #0A1560; }
+    .preview-iframe { flex: 1; border: none; background: #fff; }
+
+    /* Delete modal */
+    .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(7,8,10,.88); z-index: 2000; align-items: center; justify-content: center; backdrop-filter: blur(6px); }
+    .modal-overlay.open { display: flex; }
+    .modal { background: var(--surface); border: 1px solid var(--border2); border-radius: 16px; overflow: hidden; max-width: 400px; width: 100%; margin: 20px; animation: slideUp .2s ease; }
+    .modal-stripe { height: 3px; background: var(--red); }
+    .modal-body { padding: 28px; }
+    .modal-title { font-family: "Syne", sans-serif; font-size: 18px; font-weight: 800; margin-bottom: 10px; }
+    .modal-desc { font-size: 13px; color: var(--muted); line-height: 1.65; margin-bottom: 26px; }
+    .modal-desc strong { color: var(--muted2); font-weight: 600; }
+    .modal-actions { display: flex; gap: 10px; justify-content: flex-end; }
+    .modal-cancel { font-family: "Epilogue", sans-serif; font-size: 13px; font-weight: 500; padding: 9px 20px; border-radius: 8px; border: 1px solid var(--border2); background: transparent; color: var(--muted2); cursor: pointer; transition: border-color .15s, color .15s; }
+    .modal-cancel:hover { border-color: var(--muted); color: var(--text); }
+    .modal-confirm { font-family: "Epilogue", sans-serif; font-size: 13px; font-weight: 600; padding: 9px 20px; border-radius: 8px; background: var(--red-dim); color: var(--red); border: 1px solid var(--red-border); cursor: pointer; transition: background .15s; }
+    .modal-confirm:hover { background: #3D1515; }
+
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes slideUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="topbar">
+      <div>
+        <div class="eyebrow">QA Reporter</div>
+        <h1>Historial de informes</h1>
+      </div>
+      <a href="/" class="back-link">← Inicio</a>
+    </div>
+
+    {% if grupos %}
+    <div class="search-bar">
+      <div class="search-input-wrap">
+        <svg class="search-icon" width="15" height="15" viewBox="0 0 16 16" fill="none">
+          <circle cx="6.5" cy="6.5" r="5" stroke="currentColor" stroke-width="1.5"/>
+          <path d="M10.5 10.5L14 14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+        <input type="text" id="search-input" placeholder="Buscar por versión, ciclo, equipo o producto..." oninput="filterInformes()">
+      </div>
+      <div class="search-count" id="search-count"></div>
+    </div>
+
+    <div id="informes-container">
+      {% for equipo, productos in grupos.items() %}
+      <div class="equipo-group" data-equipo="{{ equipo | lower }}">
+        <div class="equipo-title">{{ equipo }}</div>
+
+        {% for producto, informes in productos.items() %}
+        <div class="producto-group" data-producto="{{ producto | lower }}">
+          <div class="producto-badge">{{ producto }}</div>
+          <div class="card">
+            <table>
+              <thead>
+                <tr>
+                  <th>Fecha</th>
+                  <th>Versión</th>
+                  <th>Ciclo</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for inf in informes %}
+                <tr class="informe-row"
+                    data-version="{{ inf.version or '' | lower }}"
+                    data-ciclo="{{ inf.ciclo or '' | lower }}"
+                    data-equipo="{{ equipo | lower }}"
+                    data-producto="{{ producto | lower }}">
+                  <td class="mono">{{ inf.fecha_generacion.strftime("%d/%m/%Y %H:%M") }}</td>
+                  <td class="mono">{{ inf.version or "—" }}</td>
+                  <td class="mono">{{ inf.ciclo or "—" }}</td>
+                  <td>
+                    <div class="actions-cell">
+                      <button type="button" class="btn-view"
+                        onclick="openPreview({{ inf.id }}, '{{ inf.version or '—' }} · Ciclo {{ inf.ciclo or '—' }}')">
+                        Ver
+                      </button>
+                      <a href="/historial/{{ inf.id }}/download" class="btn-dl">Descargar</a>
+                      <button type="button" class="btn-del"
+                        onclick="openDeleteModal({{ inf.id }}, '{{ inf.version or '—' }}', '{{ inf.ciclo or '—' }}')">
+                        Eliminar
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+      {% endfor %}
+    </div>
+    <div class="no-results" id="no-results">No se encontraron informes para "<span id="no-results-term"></span>"</div>
+
+    {% else %}
+      <div class="empty">
+        <p>No hay informes guardados aún.</p>
+        <a href="/generar">Generar el primero →</a>
+      </div>
+    {% endif %}
+  </div>
+
+  <!-- Preview modal -->
+  <div class="preview-modal" id="preview-modal">
+    <div class="preview-bar">
+      <span class="preview-bar-title" id="preview-title">Informe</span>
+      <div class="preview-actions">
+        <button class="preview-close" onclick="closePreview()">Cerrar</button>
+        <a class="preview-dl" id="preview-dl-link" href="#" target="_blank">Descargar HTML</a>
+      </div>
+    </div>
+    <iframe class="preview-iframe" id="preview-iframe"></iframe>
+  </div>
+
+  <!-- Delete modal -->
+  <div class="modal-overlay" id="delete-modal">
+    <div class="modal">
+      <div class="modal-stripe"></div>
+      <div class="modal-body">
+        <div class="modal-title">¿Eliminar informe?</div>
+        <div class="modal-desc" id="modal-desc">Esta acción no se puede deshacer.</div>
+        <div class="modal-actions">
+          <button class="modal-cancel" onclick="closeDeleteModal()">Cancelar</button>
+          <form id="delete-form" method="POST" style="display:contents;">
+            <button type="submit" class="modal-confirm">Eliminar</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ── Búsqueda / filtro ─────────────────────────
+    function filterInformes() {
+      const q = document.getElementById("search-input").value.trim().toLowerCase();
+      const rows = document.querySelectorAll(".informe-row");
+      let visible = 0;
+
+      rows.forEach(row => {
+        const match = !q ||
+          row.dataset.version.includes(q) ||
+          row.dataset.ciclo.includes(q) ||
+          row.dataset.equipo.includes(q) ||
+          row.dataset.producto.includes(q);
+        row.classList.toggle("hidden-row", !match);
+        if (match) visible++;
+      });
+
+      // Ocultar grupos/productos vacíos
+      document.querySelectorAll(".producto-group").forEach(pg => {
+        const hasVisible = pg.querySelector(".informe-row:not(.hidden-row)");
+        pg.style.display = hasVisible ? "" : "none";
+      });
+      document.querySelectorAll(".equipo-group").forEach(eg => {
+        const hasVisible = eg.querySelector(".informe-row:not(.hidden-row)");
+        eg.style.display = hasVisible ? "" : "none";
+      });
+
+      const noResults = document.getElementById("no-results");
+      const count = document.getElementById("search-count");
+      if (q) {
+        noResults.style.display = visible === 0 ? "block" : "none";
+        document.getElementById("no-results-term").textContent = q;
+        count.textContent = visible === 0 ? "" : `${visible} resultado${visible !== 1 ? "s" : ""}`;
+      } else {
+        noResults.style.display = "none";
+        count.textContent = "";
+        document.querySelectorAll(".producto-group, .equipo-group").forEach(el => el.style.display = "");
+      }
+    }
+
+    // Atajo teclado para enfocar búsqueda
+    document.addEventListener("keydown", e => {
+      if ((e.key === "/" || e.key === "f" && e.metaKey) && document.activeElement.tagName !== "INPUT") {
+        e.preventDefault();
+        document.getElementById("search-input").focus();
+      }
+    });
+
+    // ── Preview ───────────────────────────────────
+    function openPreview(id, title) {
+      document.getElementById("preview-title").textContent = title;
+      document.getElementById("preview-iframe").src = `/historial/${id}/preview`;
+      document.getElementById("preview-dl-link").href = `/historial/${id}/download`;
+      document.getElementById("preview-modal").classList.add("open");
+    }
+    function closePreview() {
+      document.getElementById("preview-modal").classList.remove("open");
+      document.getElementById("preview-iframe").src = "";
+    }
+
+    // ── Delete modal ──────────────────────────────
+    function openDeleteModal(id, version, ciclo) {
+      document.getElementById("modal-desc").innerHTML =
+        `Vas a eliminar el informe <strong>${version} · Ciclo ${ciclo}</strong>.<br>Esta acción no se puede deshacer.`;
+      document.getElementById("delete-form").action = `/historial/${id}/delete`;
+      document.getElementById("delete-modal").classList.add("open");
+    }
+    function closeDeleteModal() {
+      document.getElementById("delete-modal").classList.remove("open");
+    }
+    document.getElementById("delete-modal").addEventListener("click", function(e) {
+      if (e.target === this) closeDeleteModal();
+    });
+    document.addEventListener("keydown", e => {
+      if (e.key === "Escape") { closePreview(); closeDeleteModal(); }
+    });
+  </script>
+</body>
+</html>

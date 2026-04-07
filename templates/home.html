@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>QA Reporter</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Epilogue:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #07080A;
+      --surface: #0E1117;
+      --surface2: #131620;
+      --border: #1C2030;
+      --border2: #252A3D;
+      --text: #E4E7F0;
+      --muted: #5A607A;
+      --muted2: #7D849E;
+      --accent: #5B7FFF;
+      --accent-dim: #0D1140;
+      --accent-border: #1E2E8F;
+      --green: #3ECA7A;
+      --green-dim: #0A2018;
+      --green-border: #1A5C38;
+    }
+
+    body {
+      font-family: "Epilogue", sans-serif;
+      background: var(--bg);
+      background-image: radial-gradient(circle, #1C2030 1px, transparent 1px);
+      background-size: 28px 28px;
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 40px 20px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 28px;
+      animation: fadeUp .4s ease both;
+    }
+    .brand-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 12px var(--accent);
+    }
+    .brand-name {
+      font-family: "Syne", sans-serif;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .2em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    h1 {
+      font-family: "Syne", sans-serif;
+      font-size: 56px;
+      font-weight: 800;
+      text-align: center;
+      line-height: 1.0;
+      margin-bottom: 16px;
+      color: var(--text);
+      animation: fadeUp .4s .08s ease both;
+      letter-spacing: -.01em;
+    }
+    h1 em {
+      font-style: normal;
+      color: var(--accent);
+    }
+
+    .subtitle {
+      font-size: 15px;
+      color: var(--muted);
+      text-align: center;
+      line-height: 1.7;
+      margin-bottom: 52px;
+      max-width: 400px;
+      animation: fadeUp .4s .14s ease both;
+    }
+
+    .cards {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+      width: 100%;
+      max-width: 780px;
+      animation: fadeUp .4s .2s ease both;
+    }
+    @media (max-width: 560px) { .cards { grid-template-columns: 1fr; } }
+
+    .card {
+      display: flex;
+      flex-direction: column;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 36px 32px;
+      text-decoration: none;
+      color: inherit;
+      transition: border-color .2s, background .2s, transform .2s;
+      min-height: 250px;
+      position: relative;
+      overflow: hidden;
+    }
+    .card::after {
+      content: "";
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+      background: var(--border);
+      transition: background .2s;
+    }
+    .card:hover {
+      border-color: var(--accent-border);
+      background: #08092A;
+      transform: translateY(-3px);
+    }
+    .card:hover::after { background: var(--accent); }
+
+    .card-icon {
+      font-size: 22px;
+      margin-bottom: 22px;
+      width: 44px; height: 44px;
+      display: flex; align-items: center; justify-content: center;
+      background: var(--surface2);
+      border: 1px solid var(--border2);
+      border-radius: 10px;
+    }
+    .card-title {
+      font-family: "Syne", sans-serif;
+      font-size: 20px;
+      font-weight: 700;
+      margin-bottom: 10px;
+      color: var(--text);
+    }
+    .card-desc {
+      font-size: 13.5px;
+      color: var(--muted);
+      line-height: 1.65;
+      flex: 1;
+    }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 3px 10px;
+      border-radius: 20px;
+      background: var(--green-dim);
+      border: 1px solid var(--green-border);
+      color: var(--green);
+      font-size: 11px;
+      font-weight: 500;
+      font-family: "JetBrains Mono", monospace;
+      margin-top: 10px;
+    }
+    .card-cta {
+      margin-top: 24px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--muted);
+      letter-spacing: .04em;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      transition: color .2s;
+    }
+    .card:hover .card-cta { color: var(--accent); }
+
+    .footer {
+      margin-top: 44px;
+      font-size: 11px;
+      color: var(--muted);
+      animation: fadeUp .4s .28s ease both;
+    }
+    .footer a {
+      color: var(--muted);
+      text-decoration: none;
+      border-bottom: 1px solid transparent;
+      transition: color .15s, border-color .15s;
+    }
+    .footer a:hover { color: var(--muted2); border-color: var(--border2); }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(16px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="brand">
+    <div class="brand-dot"></div>
+    <span class="brand-name">Salus · QA</span>
+  </div>
+
+  <h1>QA <em>Reporter</em></h1>
+  <p class="subtitle">Generá informes de pruebas conectando con Azure DevOps o revisá el historial de ciclos anteriores.</p>
+
+  <div class="cards">
+
+    <a href="/generar" class="card">
+      <div class="card-icon">📋</div>
+      <div class="card-title">Generador de informe</div>
+      <div class="card-desc">Completá el formulario con los datos del ciclo y generá el informe HTML listo para exportar a PDF.</div>
+      <div class="card-cta">Abrir generador →</div>
+    </a>
+
+    <a href="/historial" class="card">
+      <div class="card-icon">🗂</div>
+      <div class="card-title">Historial</div>
+      <div class="card-desc">
+        Consultá y descargá los informes guardados de ciclos anteriores.
+        {% if total_informes > 0 %}
+          <br>
+          <span class="badge">{{ total_informes }} informe{{ "s" if total_informes != 1 }} guardado{{ "s" if total_informes != 1 }}</span>
+        {% endif %}
+      </div>
+      <div class="card-cta">Ver historial →</div>
+    </a>
+
+  </div>
+
+  <div class="footer">
+    <a href="/admin">Administrar equipos</a>
+  </div>
+
+</body>
+</html>
