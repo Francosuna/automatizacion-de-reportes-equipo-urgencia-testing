@@ -1,0 +1,998 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Analizador Salus Web — QA Reporter</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:            #0f0f0f;
+      --surface:       #161616;
+      --surface2:      #1c1c1c;
+      --surface3:      #212121;
+      --border:        #232323;
+      --border2:       #2d2d2d;
+      --text:          #e8e6e1;
+      --muted:         #5e5c58;
+      --muted2:        #918f8b;
+      --accent:        #2B35C1;
+      --accent-dim:    rgba(43,53,193,.1);
+      --accent-glow:   rgba(43,53,193,.22);
+      --accent-border: rgba(43,53,193,.3);
+      --red:           #d95858;
+      --red-dim:       rgba(217,88,88,.1);
+      --red-border:    rgba(217,88,88,.25);
+      --green:         #5daa4a;
+      --green-dim:     rgba(93,170,74,.1);
+      --green-border:  rgba(93,170,74,.25);
+      --amber:         #c9883a;
+      --amber-dim:     rgba(201,136,58,.1);
+      --amber-border:  rgba(201,136,58,.25);
+      --radius:        13px;
+      --radius-sm:     8px;
+      --radius-xs:     6px;
+    }
+
+    body {
+      font-family: "DM Sans", sans-serif;
+      background: var(--bg);
+      background-image: radial-gradient(ellipse 70% 50% at 15% 0%, rgba(43,53,193,.07) 0%, transparent 55%);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 52px 20px 100px;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    ::-webkit-scrollbar { width: 5px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+
+    .container { max-width: 860px; margin: 0 auto; }
+
+    /* ── Topbar ── */
+    .topbar {
+      display: flex; align-items: center; gap: 14px;
+      margin-bottom: 56px; padding-bottom: 24px;
+      border-bottom: 1px solid var(--border);
+      position: relative;
+    }
+    .topbar::after {
+      content: ''; position: absolute; bottom: -1px; left: 0;
+      width: 52px; height: 2px;
+      background: linear-gradient(90deg, var(--accent), transparent);
+    }
+    .brand-back {
+      display: flex; align-items: center; gap: 7px;
+      font-size: 12px; font-weight: 500; color: var(--muted2);
+      text-decoration: none; transition: color .15s;
+    }
+    .brand-back:hover { color: #9ba5f5; }
+    .brand-back:hover svg { transform: translateX(-2px); }
+    .brand-back svg { transition: transform .15s; }
+    .topbar-sep { width: 1px; height: 18px; background: var(--border2); }
+    .brand-dot {
+      width: 7px; height: 7px; border-radius: 50%;
+      background: var(--accent); box-shadow: 0 0 8px var(--accent-glow);
+    }
+    .brand { font-size: 13px; font-weight: 600; color: var(--text); letter-spacing: -.01em; }
+    .topbar-mod { font-size: 12px; color: var(--muted); margin-left: auto; }
+
+    /* ── Header ── */
+    .header { margin-bottom: 44px; }
+    .header-eyebrow {
+      font-size: 10px; font-weight: 600; letter-spacing: .16em;
+      text-transform: uppercase; color: var(--accent);
+      margin-bottom: 16px; display: flex; align-items: center; gap: 10px; opacity: .9;
+    }
+    .header-eyebrow::before {
+      content: ""; display: block; width: 20px; height: 2px;
+      background: var(--accent); border-radius: 2px;
+    }
+    .header h1 {
+      font-family: "Syne", sans-serif;
+      font-size: 38px; font-weight: 800; line-height: 1.05;
+      color: var(--text); letter-spacing: -.022em;
+    }
+    .header h1 em { font-style: normal; color: #9ba5f5; }
+    .header p { font-size: 14px; color: var(--muted2); margin-top: 12px; line-height: 1.75; max-width: 500px; }
+
+    /* ── Upload zone ── */
+    .upload-zone {
+      background: var(--surface); border: 1.5px dashed var(--border2);
+      border-radius: var(--radius); padding: 52px 32px; text-align: center;
+      cursor: pointer; transition: border-color .2s, background .2s;
+      position: relative; overflow: hidden;
+    }
+    .upload-zone::before {
+      content: ''; position: absolute; inset: 0;
+      background: radial-gradient(ellipse 60% 80% at 50% 120%, var(--accent-dim) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .upload-zone:hover, .upload-zone.over {
+      border-color: var(--accent); background: var(--surface2);
+    }
+    .upload-icon {
+      width: 52px; height: 52px; margin: 0 auto 20px;
+      background: var(--surface2); border: 1px solid var(--border2);
+      border-radius: 14px; display: flex; align-items: center; justify-content: center;
+      transition: border-color .2s, background .2s;
+    }
+    .upload-zone:hover .upload-icon, .upload-zone.over .upload-icon {
+      border-color: var(--accent-border); background: var(--accent-dim);
+    }
+    .upload-title {
+      font-family: "Syne", sans-serif; font-size: 16px; font-weight: 700;
+      color: var(--text); margin-bottom: 6px;
+    }
+    .upload-sub { font-size: 13px; color: var(--muted2); }
+    .upload-sub code {
+      font-family: "JetBrains Mono", monospace; font-size: 12px;
+      background: var(--surface2); color: #9ba5f5; padding: 2px 6px;
+      border-radius: 4px; border: 1px solid var(--border2);
+    }
+
+    .info-bar {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-top: 14px; flex-wrap: wrap; gap: 10px;
+    }
+    .storage-info { display: flex; align-items: center; gap: 7px; font-size: 11px; color: var(--muted); }
+    .dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+    .btn-ghost {
+      font-family: "DM Sans", sans-serif; font-size: 11px; font-weight: 500;
+      padding: 5px 12px; border-radius: var(--radius-xs);
+      border: 1px solid var(--border2); background: transparent;
+      color: var(--muted); cursor: pointer; transition: color .15s, border-color .15s;
+    }
+    .btn-ghost:hover { color: var(--red); border-color: var(--red-border); }
+
+    /* ── Error / info msgs ── */
+    .err-msg {
+      display: none; margin-top: 14px; padding: 12px 16px;
+      border-radius: var(--radius-sm); background: var(--red-dim);
+      color: var(--red); font-size: 13px; border: 1px solid var(--red-border);
+    }
+
+    /* ── Progress ── */
+    .processing { display: none; margin-top: 28px; }
+    .proc-label { font-size: 13px; color: var(--muted2); margin-bottom: 10px; }
+    .prog { height: 3px; background: var(--surface2); border-radius: 2px; overflow: hidden; }
+    .progb {
+      height: 100%; border-radius: 2px; transition: width .3s;
+      background: linear-gradient(90deg, var(--accent), #9ba5f5);
+    }
+
+    /* ── Results ── */
+    #results { display: none; margin-top: 36px; }
+    .results-header {
+      display: flex; align-items: flex-start; justify-content: space-between;
+      margin-bottom: 24px; flex-wrap: wrap; gap: 12px;
+    }
+    .results-title {
+      font-family: "Syne", sans-serif; font-size: 22px; font-weight: 700; color: var(--text);
+    }
+    .results-date { font-size: 12px; color: var(--muted); margin-top: 4px; }
+
+    /* ── Global stats ── */
+    .glob-grid {
+      display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;
+      margin-bottom: 28px;
+    }
+    @media (max-width: 600px) { .glob-grid { grid-template-columns: repeat(2, 1fr); } }
+    .stat-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius-sm); padding: 16px; text-align: center;
+      position: relative; overflow: hidden;
+    }
+    .stat-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; }
+    .stat-card.c-default::before { background: var(--border2); }
+    .stat-card.c-green::before  { background: var(--green); }
+    .stat-card.c-red::before    { background: var(--red); }
+    .stat-card.c-amber::before  { background: var(--amber); }
+    .stat-label { font-size: 10px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
+    .stat-val { font-family: "Syne", sans-serif; font-size: 28px; font-weight: 800; line-height: 1; }
+    .stat-val.c-default { color: var(--text); }
+    .stat-val.c-green   { color: var(--green); }
+    .stat-val.c-red     { color: var(--red); }
+    .stat-val.c-amber   { color: var(--amber); }
+
+    /* ── Section label ── */
+    .section-label {
+      font-size: 10px; font-weight: 600; letter-spacing: .13em; text-transform: uppercase;
+      color: var(--muted2); margin: 28px 0 12px;
+      display: flex; align-items: center; gap: 10px;
+    }
+    .section-label::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+    /* ── Recurrents ── */
+    .rec-card {
+      background: var(--amber-dim); border: 1px solid var(--amber-border);
+      border-radius: var(--radius-sm); padding: 14px 16px; margin-bottom: 8px;
+    }
+    .rec-err { font-size: 13px; font-weight: 500; color: var(--amber); margin-bottom: 4px; }
+    .rec-meta { font-size: 11px; color: var(--muted2); }
+
+    /* ── Actions bar ── */
+    .actions-bar {
+      display: flex; gap: 10px; flex-wrap: wrap; align-items: center;
+      margin: 24px 0 8px;
+    }
+    .btn-action {
+      font-family: "DM Sans", sans-serif; font-size: 13px; font-weight: 500;
+      padding: 9px 20px; border-radius: var(--radius-xs);
+      border: 1px solid var(--border2); background: var(--surface2);
+      color: var(--muted2); cursor: pointer;
+      transition: border-color .15s, color .15s, background .15s;
+    }
+    .btn-action:hover { border-color: var(--accent); color: #9ba5f5; background: var(--accent-dim); }
+    .btn-action:disabled { opacity: .4; cursor: not-allowed; }
+    .btn-action.primary {
+      border-color: var(--accent-border); background: var(--accent-dim); color: #9ba5f5;
+    }
+    .btn-action.primary:hover { background: rgba(43,53,193,.18); }
+    .btn-reset {
+      font-family: "DM Sans", sans-serif; font-size: 12px; font-weight: 500;
+      padding: 8px 18px; border-radius: var(--radius-xs);
+      border: 1px solid var(--border2); background: transparent;
+      color: var(--muted); cursor: pointer; transition: color .15s, border-color .15s;
+    }
+    .btn-reset:hover { color: var(--text); }
+
+    /* ── Report cards ── */
+    .report-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); margin-bottom: 12px; overflow: hidden;
+      transition: border-color .2s;
+    }
+    .report-card:hover { border-color: var(--border2); }
+    .report-header {
+      display: flex; align-items: center; gap: 12px;
+      padding: 14px 20px; border-bottom: 1px solid var(--border);
+    }
+    .report-status-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
+    .report-status-dot.ok  { background: var(--green); box-shadow: 0 0 8px rgba(93,170,74,.35); }
+    .report-status-dot.err { background: var(--red); box-shadow: 0 0 8px rgba(217,88,88,.35); }
+    .report-file {
+      font-family: "JetBrains Mono", monospace; font-size: 12px; font-weight: 500; flex: 1;
+    }
+    .report-file.ok  { color: var(--green); }
+    .report-file.err { color: var(--red); }
+    .report-suite { font-size: 11px; color: var(--muted2); margin-top: 2px; }
+    .badge {
+      display: inline-flex; align-items: center;
+      font-size: 11px; padding: 3px 10px; border-radius: 20px; font-weight: 500; white-space: nowrap;
+    }
+    .badge.ok  { background: var(--green-dim); color: var(--green); border: 1px solid var(--green-border); }
+    .badge.err { background: var(--red-dim); color: var(--red); border: 1px solid var(--red-border); }
+
+    /* ── Mini stats ── */
+    .mini-stats {
+      display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px;
+      padding: 14px 20px;
+    }
+    .mini-stat { background: var(--surface2); border-radius: var(--radius-xs); padding: 10px; text-align: center; }
+    .mini-label { font-size: 10px; color: var(--muted); font-weight: 600; letter-spacing: .07em; text-transform: uppercase; margin-bottom: 4px; }
+    .mini-val { font-size: 18px; font-weight: 700; }
+    .mini-val.c-default { color: var(--text); }
+    .mini-val.c-green   { color: var(--green); }
+    .mini-val.c-red     { color: var(--red); }
+    .mini-val.c-amber   { color: var(--amber); }
+
+    /* ── Pass rate bar ── */
+    .pass-rate-wrap { padding: 0 20px 16px; }
+    .pass-rate-label { font-size: 11px; color: var(--muted); margin-bottom: 6px; display: flex; justify-content: space-between; }
+    .pass-rate-bar { height: 4px; background: var(--surface2); border-radius: 2px; overflow: hidden; }
+    .pass-rate-fill { height: 100%; border-radius: 2px; transition: width .6s ease; }
+
+    /* ── Issues ── */
+    .issues-section { padding: 0 20px 16px; }
+    .issue-line {
+      font-size: 13px; padding: 5px 0 5px 12px;
+      border-left: 2px solid var(--border2); margin-top: 5px;
+    }
+    .issue-line-header {
+      display: flex; align-items: flex-start; gap: 8px;
+      cursor: pointer; user-select: none;
+    }
+    .issue-line-header:hover .issue-text { text-decoration: underline; text-decoration-color: var(--border2); }
+    .pill {
+      display: inline-flex; align-items: center;
+      font-size: 10px; padding: 2px 8px; border-radius: 20px; font-weight: 500;
+      white-space: nowrap; flex-shrink: 0;
+    }
+    .pill-rec { background: var(--amber-dim); color: var(--amber); border: 1px solid var(--amber-border); }
+    .pill-new { background: var(--accent-dim); color: #9ba5f5; border: 1px solid var(--accent-border); }
+    .issue-text { flex: 1; line-height: 1.55; color: var(--muted2); }
+    .issue-chevron { font-size: 9px; color: var(--muted); flex-shrink: 0; margin-top: 3px; transition: transform .15s; }
+    .issue-chevron.open { transform: rotate(90deg); }
+    .issue-detail {
+      display: none; margin-top: 8px; padding: 12px 14px;
+      background: var(--surface2); border-radius: var(--radius-xs);
+      border: 1px solid var(--border);
+    }
+    .issue-detail.open { display: block; }
+    .detail-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; color: var(--muted); margin-bottom: 8px; }
+    .step-row { display: flex; align-items: flex-start; gap: 8px; font-size: 12px; padding: 4px 0; border-bottom: 1px solid var(--border); }
+    .step-row:last-child { border-bottom: none; }
+    .step-icon { flex-shrink: 0; width: 16px; }
+    .step-name { flex: 1; color: var(--muted2); }
+    .step-name.failed { color: var(--red); font-weight: 500; }
+    .step-name.broken { color: var(--amber); font-weight: 500; }
+    .step-dur { font-size: 11px; color: var(--muted); white-space: nowrap; }
+    .assert-block {
+      margin-top: 10px; padding: 10px 12px;
+      background: var(--surface); border: 1px solid var(--red-border);
+      border-radius: var(--radius-xs);
+    }
+    .assert-title { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; color: var(--red); margin-bottom: 8px; }
+    .assert-row { display: grid; grid-template-columns: 90px 1fr; gap: 4px; font-size: 12px; margin-bottom: 3px; }
+    .al { color: var(--muted); font-weight: 500; }
+    .av { word-break: break-word; color: var(--muted2); }
+    .av.exp   { color: var(--green); }
+    .av.found { color: var(--red); font-weight: 500; }
+
+    /* ── Animations ── */
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .anim-in { animation: fadeUp .35s ease both; }
+    .spinner-inline {
+      display: inline-block; width: 13px; height: 13px;
+      border: 2px solid rgba(255,255,255,.15); border-top-color: #9ba5f5;
+      border-radius: 50%; animation: spin .6s linear infinite;
+      vertical-align: middle; margin-right: 6px;
+    }
+  </style>
+</head>
+
+<body>
+<div class="container">
+
+  <!-- Topbar -->
+  <div class="topbar">
+    <a href="/" class="brand-back">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+        <path d="M9 11L5 7l4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      Inicio
+    </a>
+    <div class="topbar-sep"></div>
+    <div class="brand-dot"></div>
+    <span class="brand">QA Reporter</span>
+    <span class="topbar-mod">Analizador · Salus Web</span>
+  </div>
+
+  <!-- Header -->
+  <div class="header anim-in">
+    <div class="header-eyebrow">Automatización · Salus Web</div>
+    <h1>Analizador de<br><em>reportes Allure</em></h1>
+    <p>Subí los <code style="font-family:'JetBrains Mono',monospace;font-size:12px;background:var(--surface2);color:#9ba5f5;padding:2px 7px;border-radius:4px;border:1px solid var(--border2);">index.html</code> generados por Allure para ver qué falló, detectar errores recurrentes y exportar el resumen.</p>
+  </div>
+
+  <!-- Upload section -->
+  <div id="upload-section" class="anim-in" style="animation-delay:.08s">
+    <div class="upload-zone" id="dz" onclick="document.getElementById('fi').click()">
+      <div class="upload-icon">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#9ba5f5" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+          <polyline points="17 8 12 3 7 8"/>
+          <line x1="12" y1="3" x2="12" y2="15"/>
+        </svg>
+      </div>
+      <div class="upload-title">Subí los reportes Allure</div>
+      <div class="upload-sub">Hacé clic o arrastrá uno o varios <code>index.html</code> acá</div>
+    </div>
+    <input type="file" id="fi" accept=".html" multiple style="display:none">
+    <div class="info-bar">
+      <div class="storage-info" id="storage-info">
+        <div class="dot" style="background:var(--muted);"></div>
+        <span>Cargando historial...</span>
+      </div>
+      <button class="btn-ghost" onclick="clearHistory()">Limpiar historial</button>
+    </div>
+  </div>
+
+  <div class="err-msg" id="err-msg"></div>
+
+  <!-- Processing -->
+  <div class="processing" id="processing">
+    <div class="proc-label" id="proc-label">Procesando...</div>
+    <div class="prog"><div class="progb" id="progb" style="width:0%"></div></div>
+  </div>
+
+  <!-- Results -->
+  <div id="results">
+    <div class="results-header">
+      <div>
+        <div class="results-title" id="res-title"></div>
+        <div class="results-date" id="res-date"></div>
+      </div>
+      <button class="btn-reset" onclick="doReset()">← Cargar otros</button>
+    </div>
+
+    <div class="glob-grid" id="glob-stats"></div>
+
+    <div id="recurrent-section" style="display:none">
+      <div class="section-label">Errores recurrentes</div>
+      <div id="recurrent-list"></div>
+    </div>
+
+    <div class="actions-bar">
+      <button class="btn-action primary" onclick="downloadDoc()" id="btn-doc">Descargar .docx</button>
+      <button class="btn-action" onclick="downloadTxt()">Descargar .txt</button>
+      <button class="btn-action" onclick="downloadHTML()">Descargar HTML / PDF</button>
+    </div>
+
+    <div class="section-label">Detalle por script</div>
+    <div id="report-list"></div>
+  </div>
+
+</div>
+
+<!-- docx via unpkg (más confiable) -->
+<script>
+(function loadDocx() {
+  var s = document.createElement('script');
+  s.src = 'https://unpkg.com/docx@8.5.0/build/index.umd.js';
+  s.onerror = function() {
+    // fallback cdnjs
+    var s2 = document.createElement('script');
+    s2.src = 'https://cdnjs.cloudflare.com/ajax/libs/docx/8.5.0/docx.umd.min.js';
+    document.head.appendChild(s2);
+  };
+  document.head.appendChild(s);
+})();
+</script>
+
+<script>
+const STORAGE_KEY = 'salus-allure-history-v2';
+let parsedReports = [];
+let history = { executions: [] };
+let recurrentMap = {};
+
+/* ── localStorage ── */
+function loadHistory() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) history = JSON.parse(raw);
+  } catch(e) { history = { executions: [] }; }
+  updateStorageInfo();
+}
+function saveHistory() {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(history)); } catch(e) {}
+}
+function clearHistory() {
+  if (!confirm('¿Borrar todo el historial de errores guardado?')) return;
+  history = { executions: [] };
+  saveHistory();
+  updateStorageInfo();
+}
+function updateStorageInfo() {
+  const el = document.getElementById('storage-info');
+  const count = history.executions.length;
+  if (count === 0) {
+    el.innerHTML = `<div class="dot" style="background:var(--muted);"></div><span>Sin historial previo</span>`;
+  } else {
+    const last = history.executions[history.executions.length - 1];
+    el.innerHTML = `<div class="dot" style="background:var(--green);"></div>
+      <span>${count} ejecución${count!==1?'es':''} guardadas — última: ${last.date}</span>`;
+  }
+}
+
+/* ── Fingerprint & recurrents ── */
+function buildErrorFingerprint(msg) {
+  return msg
+    .replace(/\d{4}-\d{2}-\d{2}T[\d:.Z]+/g, '')
+    .replace(/Session ID: [a-f0-9]+/gi, '')
+    .replace(/tried for \d+ second/gi, 'tried for N second')
+    .replace(/\(tried for .+?\)/g, '')
+    .replace(/port \d+/gi, 'port N')
+    .replace(/localhost:\d+/gi, 'localhost:N')
+    .replace(/versión: '.+?'/gi, '')
+    .trim().slice(0, 120);
+}
+function computeRecurrents() {
+  recurrentMap = {};
+  for (const exec of history.executions) {
+    for (const rep of (exec.reports || [])) {
+      for (const issue of (rep.issues || [])) {
+        const fp = buildErrorFingerprint(issue.msg);
+        if (!recurrentMap[fp]) recurrentMap[fp] = { fp, msg: issue.msg.split('\n')[0].slice(0, 200), dates: [], suites: [] };
+        if (!recurrentMap[fp].dates.includes(exec.date)) recurrentMap[fp].dates.push(exec.date);
+        if (!recurrentMap[fp].suites.includes(rep.suite)) recurrentMap[fp].suites.push(rep.suite);
+      }
+    }
+  }
+}
+function isRecurrent(msg) {
+  return recurrentMap[buildErrorFingerprint(msg)] || null;
+}
+
+/* ── Allure parsing ── */
+function extractBlobs(html) {
+  const b = {};
+  const re = /d\('([^']+)',\s*'([A-Za-z0-9+/=]+)'\)/g;
+  let m;
+  while ((m = re.exec(html)) !== null) {
+    try { b[m[1]] = JSON.parse(atob(m[2])); } catch(e) {}
+  }
+  return b;
+}
+function getSuite(behaviors) {
+  for (const c of (behaviors?.children || [])) {
+    if (c.name && c.children) return c.name;
+  }
+  return 'Sin suite detectada';
+}
+function parseAsserts(msg) {
+  const asserts = [];
+  const re = /El valor de la propiedad[^[]*\[([^\]]+)\][^\[]*\[([^\]]+)\][^\[]*expected\s*\[([^\]]*)\]\s*but found\s*\[([^\]]*)\]/gi;
+  let m;
+  while ((m = re.exec(msg)) !== null) asserts.push({ prop: m[1].trim(), campo: m[2].trim(), expected: m[3].trim(), found: m[4].trim() });
+  if (asserts.length === 0) {
+    const re2 = /expected\s*\[([^\]]*)\]\s*but found\s*\[([^\]]*)\]/gi;
+    while ((m = re2.exec(msg)) !== null) asserts.push({ prop: '', campo: '', expected: m[1].trim(), found: m[2].trim() });
+  }
+  return asserts;
+}
+function stepIcon(status) {
+  if (!status || status === 'passed') return '<span style="color:#5daa4a;font-size:11px;">✓</span>';
+  if (status === 'failed') return '<span style="color:#d95858;font-size:11px;">✗</span>';
+  if (status === 'broken') return '<span style="color:#c9883a;font-size:11px;">!</span>';
+  return '<span style="color:#5e5c58;font-size:11px;">–</span>';
+}
+function formatDur(ms) {
+  if (!ms) return '';
+  return ms < 1000 ? ms + 'ms' : (ms / 1000).toFixed(1) + 's';
+}
+function parseReport(html, fname) {
+  const blobs = extractBlobs(html);
+  const sum = blobs['widgets/summary.json'];
+  if (!sum?.statistic) return null;
+  const s = sum.statistic;
+  const suite = getSuite(blobs['data/behaviors.json']);
+  const seen = new Set();
+  const issues = [];
+  for (const [k, v] of Object.entries(blobs)) {
+    if (!k.startsWith('data/test-cases/') || !v?.uid) continue;
+    if (!['failed', 'broken'].includes(v.status)) continue;
+    const msg = v.statusMessage || v.testStage?.statusMessage || '';
+    const fp = msg.slice(0, 80);
+    if (seen.has(fp)) continue;
+    seen.add(fp);
+    issues.push({ status: v.status, name: v.name || '', msg: msg.slice(0, 800), steps: v.testStage?.steps || [] });
+  }
+  return { file: fname.replace('.html', ''), suite, total: s.total||0, passed: s.passed||0, failed: s.failed||0, broken: s.broken||0, skipped: s.skipped||0, issues };
+}
+
+/* ── Render ── */
+let issueIdx = 0;
+
+function renderIssueLine(issue, rec) {
+  const id = 'iss-' + (issueIdx++);
+  const isRec = rec && rec.dates.length > 0;
+  const pill = isRec
+    ? `<span class="pill pill-rec">Recurrente ×${rec.dates.length}</span>`
+    : `<span class="pill pill-new">Nuevo</span>`;
+  const headline = issue.msg.split('\n')[0].slice(0, 200);
+  const stepsHtml = issue.steps.length > 0
+    ? issue.steps.map(s => {
+        const st = s.status || 'passed';
+        return `<div class="step-row">
+          <div class="step-icon">${stepIcon(st)}</div>
+          <div class="step-name ${['failed','broken'].includes(st) ? st : ''}">${s.name || ''}</div>
+          <div class="step-dur">${formatDur(s.time?.duration)}</div>
+        </div>`;
+      }).join('')
+    : '<div style="font-size:12px;color:var(--muted);">Sin pasos disponibles.</div>';
+  const asserts = parseAsserts(issue.msg);
+  const assertsHtml = asserts.length > 0
+    ? asserts.map((a, i) => `
+        <div class="assert-block"${i > 0 ? ' style="margin-top:8px;"' : ''}>
+          <div class="assert-title">Assert${asserts.length > 1 ? ' #' + (i + 1) : ''} fallido</div>
+          ${a.campo ? `<div class="assert-row"><span class="al">Campo</span><span class="av">${a.campo}</span></div>` : ''}
+          <div class="assert-row"><span class="al">Esperado</span><span class="av exp">${a.expected || '(vacío)'}</span></div>
+          <div class="assert-row"><span class="al">Encontrado</span><span class="av found">${a.found || '(vacío)'}</span></div>
+        </div>`).join('')
+    : `<div class="assert-block">
+        <div class="assert-title">Detalle del error</div>
+        <div style="font-size:12px;white-space:pre-wrap;color:var(--muted2);">${issue.msg.slice(0, 500)}</div>
+      </div>`;
+  return `<div class="issue-line">
+    <div class="issue-line-header" onclick="toggleIssue('${id}')">
+      ${pill}
+      <span class="issue-text">${headline}</span>
+      <span class="issue-chevron" id="chev-${id}">▶</span>
+    </div>
+    <div class="issue-detail" id="${id}">
+      <div class="detail-label">Pasos</div>
+      ${stepsHtml}
+      ${assertsHtml}
+    </div>
+  </div>`;
+}
+
+function toggleIssue(id) {
+  document.getElementById(id).classList.toggle('open');
+  document.getElementById('chev-' + id).classList.toggle('open');
+}
+
+function renderGlobals() {
+  const total  = parsedReports.reduce((a, r) => a + r.total, 0);
+  const passed = parsedReports.reduce((a, r) => a + r.passed, 0);
+  const failed = parsedReports.reduce((a, r) => a + r.failed, 0);
+  const broken = parsedReports.reduce((a, r) => a + r.broken, 0);
+  document.getElementById('res-title').textContent = `${parsedReports.length} reporte${parsedReports.length !== 1 ? 's' : ''} analizados`;
+  document.getElementById('res-date').textContent = new Date().toLocaleDateString('es-AR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+  document.getElementById('glob-stats').innerHTML = `
+    <div class="stat-card c-default"><div class="stat-label">Scripts</div><div class="stat-val c-default">${parsedReports.length}</div></div>
+    <div class="stat-card c-default"><div class="stat-label">Tests</div><div class="stat-val c-default">${total}</div></div>
+    <div class="stat-card c-green"><div class="stat-label">Passed</div><div class="stat-val c-green">${passed}</div></div>
+    <div class="stat-card c-red"><div class="stat-label">Fallidos</div><div class="stat-val c-red">${failed + broken}</div></div>`;
+}
+
+function renderRecurrents() {
+  const recSec = document.getElementById('recurrent-section');
+  const recList = document.getElementById('recurrent-list');
+  const currentFps = new Set();
+  for (const r of parsedReports) for (const i of r.issues) currentFps.add(buildErrorFingerprint(i.msg));
+  const hits = Object.values(recurrentMap).filter(r => currentFps.has(r.fp) && r.dates.length >= 1);
+  if (hits.length === 0) { recSec.style.display = 'none'; return; }
+  recSec.style.display = 'block';
+  recList.innerHTML = hits.map(h => `
+    <div class="rec-card">
+      <div class="rec-err">${h.msg.slice(0, 200)}</div>
+      <div class="rec-meta">Visto en ${h.dates.length} ejecución${h.dates.length !== 1 ? 'es' : ''}: ${h.dates.join(', ')} — Suites: ${h.suites.join(', ')}</div>
+    </div>`).join('');
+}
+
+function renderList() {
+  issueIdx = 0;
+  const el = document.getElementById('report-list');
+  el.innerHTML = '';
+  for (const r of parsedReports) {
+    const ok = r.issues.length === 0;
+    const passRate = r.total > 0 ? Math.round((r.passed / r.total) * 100) : 0;
+    const barColor = passRate >= 90 ? 'var(--green)' : passRate >= 70 ? 'var(--amber)' : 'var(--red)';
+    const issuesHtml = r.issues.map(i => renderIssueLine(i, isRecurrent(i.msg))).join('');
+    el.insertAdjacentHTML('beforeend', `
+      <div class="report-card anim-in">
+        <div class="report-header">
+          <div class="report-status-dot ${ok ? 'ok' : 'err'}"></div>
+          <div style="flex:1;">
+            <div class="report-file ${ok ? 'ok' : 'err'}">${r.file}</div>
+            <div class="report-suite">${r.suite}</div>
+          </div>
+          <span class="badge ${ok ? 'ok' : 'err'}">${ok ? 'Todo OK' : (r.failed + r.broken) + ' error' + (r.failed + r.broken !== 1 ? 'es' : '')}</span>
+        </div>
+        <div class="mini-stats">
+          <div class="mini-stat"><div class="mini-label">Total</div><div class="mini-val c-default">${r.total}</div></div>
+          <div class="mini-stat"><div class="mini-label">Passed</div><div class="mini-val c-green">${r.passed}</div></div>
+          <div class="mini-stat"><div class="mini-label">Failed</div><div class="mini-val c-red">${r.failed}</div></div>
+          <div class="mini-stat"><div class="mini-label">Broken</div><div class="mini-val c-amber">${r.broken}</div></div>
+        </div>
+        <div class="pass-rate-wrap">
+          <div class="pass-rate-label">
+            <span>Tasa de éxito</span>
+            <span style="font-weight:600;color:${barColor};">${passRate}%</span>
+          </div>
+          <div class="pass-rate-bar">
+            <div class="pass-rate-fill" style="width:${passRate}%;background:${barColor};"></div>
+          </div>
+        </div>
+        ${issuesHtml ? `<div class="issues-section">${issuesHtml}</div>` : ''}
+      </div>`);
+  }
+}
+
+/* ── File processing ── */
+async function processFiles(files) {
+  document.getElementById('upload-section').style.display = 'none';
+  document.getElementById('err-msg').style.display = 'none';
+  document.getElementById('processing').style.display = 'block';
+  parsedReports = [];
+  for (let i = 0; i < files.length; i++) {
+    document.getElementById('proc-label').textContent = `Procesando ${i + 1}/${files.length}: ${files[i].name}`;
+    document.getElementById('progb').style.width = Math.round(((i + 1) / files.length) * 100) + '%';
+    const html = await files[i].text();
+    const r = parseReport(html, files[i].name);
+    if (r) parsedReports.push(r);
+    await new Promise(res => setTimeout(res, 10));
+  }
+  if (parsedReports.length === 0) {
+    document.getElementById('processing').style.display = 'none';
+    document.getElementById('upload-section').style.display = 'block';
+    showErr('No se encontraron reportes Allure válidos. Asegurate de subir el index.html generado por Allure.');
+    return;
+  }
+  parsedReports.sort((a, b) => a.file.localeCompare(b.file));
+  computeRecurrents();
+  const execDate = new Date().toLocaleDateString('es-AR');
+  history.executions.push({ date: execDate, reports: parsedReports.map(r => ({ suite: r.suite, issues: r.issues.map(i => ({ msg: i.msg })) })) });
+  if (history.executions.length > 20) history.executions = history.executions.slice(-20);
+  saveHistory();
+  updateStorageInfo();
+  document.getElementById('processing').style.display = 'none';
+  document.getElementById('results').style.display = 'block';
+  renderGlobals();
+  renderRecurrents();
+  renderList();
+}
+
+function doReset() {
+  parsedReports = [];
+  document.getElementById('results').style.display = 'none';
+  document.getElementById('upload-section').style.display = 'block';
+  document.getElementById('err-msg').style.display = 'none';
+  document.getElementById('fi').value = '';
+}
+function showErr(msg) {
+  const el = document.getElementById('err-msg');
+  el.textContent = msg; el.style.display = 'block';
+}
+
+/* ── Export TXT ── */
+function buildText() {
+  const date = new Date().toLocaleDateString('es-AR');
+  let txt = `REPORTE DE EJECUCIÓN — SALUS WEB\nFecha: ${date}\nScripts: ${parsedReports.length}\n\n`;
+  for (const r of parsedReports) {
+    txt += `${r.file} / ${r.suite}\n`;
+    txt += `  Total: ${r.total} | Passed: ${r.passed} | Failed: ${r.failed} | Broken: ${r.broken}\n`;
+    if (r.issues.length === 0) txt += `  Estado: Todo OK.\n`;
+    else {
+      txt += `  Estado: ${r.failed + r.broken} error(s).\n`;
+      for (const i of r.issues) {
+        const rec = isRecurrent(i.msg);
+        const tag = rec && rec.dates.length > 0 ? `[RECURRENTE ×${rec.dates.length}] ` : '[NUEVO] ';
+        txt += `  - ${tag}${i.msg.split('\n')[0].slice(0, 200)}\n`;
+        for (const a of parseAsserts(i.msg)) {
+          if (a.campo) txt += `      Campo:      ${a.campo}\n`;
+          txt += `      Esperado:   ${a.expected}\n`;
+          txt += `      Encontrado: ${a.found}\n`;
+        }
+      }
+    }
+    txt += '\n';
+  }
+  return txt;
+}
+function downloadTxt() {
+  const blob = new Blob([buildText()], { type: 'text/plain' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `Reporte_SalusWeb_${new Date().toISOString().slice(0, 10)}.txt`;
+  a.click();
+}
+
+/* ── Export HTML / PDF ── */
+function downloadHTML() {
+  const date = new Date().toLocaleDateString('es-AR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+  const total  = parsedReports.reduce((a, r) => a + r.total, 0);
+  const passed = parsedReports.reduce((a, r) => a + r.passed, 0);
+  const failed = parsedReports.reduce((a, r) => a + r.failed, 0);
+  const broken = parsedReports.reduce((a, r) => a + r.broken, 0);
+  const globalRate = total > 0 ? Math.round((passed / total) * 100) : 0;
+
+  const recHits = Object.values(recurrentMap).filter(r => {
+    const fps = new Set(parsedReports.flatMap(rep => rep.issues.map(i => buildErrorFingerprint(i.msg))));
+    return fps.has(r.fp) && r.dates.length >= 1;
+  });
+
+  const scriptRows = parsedReports.map(r => {
+    const ok = r.issues.length === 0;
+    const rate = r.total > 0 ? Math.round((r.passed / r.total) * 100) : 0;
+    const statusColor = ok ? '#27500A' : '#791F1F';
+    const statusBg = ok ? '#EAF3DE' : '#FCEBEB';
+    const statusText = ok ? 'Todo OK' : `${r.failed + r.broken} error(s)`;
+    const errorRows = r.issues.map(i => {
+      const rec = isRecurrent(i.msg);
+      const tag = rec ? `[Rec ×${rec.dates.length}]` : '[Nuevo]';
+      const tagColor = rec ? '#854f0b' : '#061E29';
+      return `<tr>
+        <td style="padding:6px 10px;font-size:12px;color:${tagColor};font-weight:600;white-space:nowrap;">${tag}</td>
+        <td style="padding:6px 10px;font-size:12px;color:#444;word-break:break-word;">${i.msg.split('\n')[0].slice(0, 220)}</td>
+      </tr>`;
+    }).join('');
+    const errTable = r.issues.length > 0
+      ? `<table style="width:100%;border-collapse:collapse;margin-top:8px;background:#fafafa;border-radius:6px;overflow:hidden;">
+          ${errorRows}
+        </table>`
+      : '';
+    return `<div style="background:#fff;border:1px solid #e0e0e0;border-radius:10px;margin-bottom:14px;overflow:hidden;page-break-inside:avoid;">
+      <div style="display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid #e0e0e0;background:${ok ? '#f6fbf0' : '#fff8f8'};">
+        <div style="width:10px;height:10px;border-radius:50%;background:${ok ? '#5daa4a' : '#d95858'};flex-shrink:0;"></div>
+        <div style="flex:1;">
+          <div style="font-family:monospace;font-size:13px;font-weight:600;color:${ok ? '#27500A' : '#791F1F'};">${r.file}</div>
+          <div style="font-size:11px;color:#888;margin-top:2px;">${r.suite}</div>
+        </div>
+        <div style="display:flex;gap:16px;font-size:12px;">
+          <span>Total <b>${r.total}</b></span>
+          <span style="color:#27500A;">OK <b>${r.passed}</b></span>
+          <span style="color:#791F1F;">Err <b>${r.failed + r.broken}</b></span>
+        </div>
+        <span style="font-size:11px;padding:3px 10px;border-radius:20px;background:${statusBg};color:${statusColor};font-weight:600;">${statusText}</span>
+      </div>
+      <div style="padding:10px 16px;">
+        <div style="height:5px;background:#f0f0f0;border-radius:3px;margin-bottom:8px;">
+          <div style="height:100%;width:${rate}%;border-radius:3px;background:${rate>=90?'#5daa4a':rate>=70?'#c9883a':'#d95858'};"></div>
+        </div>
+        ${errTable}
+      </div>
+    </div>`;
+  }).join('');
+
+  const recSection = recHits.length > 0 ? `
+    <div style="margin-bottom:28px;">
+      <h2 style="font-size:14px;font-weight:700;color:#854f0b;margin:0 0 10px;padding-bottom:8px;border-bottom:2px solid #f5ddb0;">⚠ Errores recurrentes</h2>
+      ${recHits.map(h => `
+        <div style="background:#fffbf0;border:1px solid #f5ddb0;border-radius:8px;padding:12px 14px;margin-bottom:8px;">
+          <div style="font-size:13px;font-weight:500;color:#854f0b;margin-bottom:4px;">${h.msg.slice(0, 200)}</div>
+          <div style="font-size:11px;color:#999;">×${h.dates.length} ejecución${h.dates.length!==1?'es':''}: ${h.dates.join(', ')} — ${h.suites.join(', ')}</div>
+        </div>`).join('')}
+    </div>` : '';
+
+  const html = `<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Reporte Salus Web — ${new Date().toISOString().slice(0,10)}</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: Arial, sans-serif; background: #f5f5f5; color: #222; padding: 40px 24px; }
+    .page { max-width: 900px; margin: 0 auto; background: #fff; border-radius: 14px; padding: 40px; box-shadow: 0 4px 32px rgba(0,0,0,.1); }
+    @media print {
+      body { background: #fff; padding: 0; }
+      .page { box-shadow: none; border-radius: 0; padding: 20px; }
+      .no-print { display: none !important; }
+    }
+  </style>
+</head>
+<body>
+<div class="page">
+  <!-- Print button -->
+  <div class="no-print" style="text-align:right;margin-bottom:24px;">
+    <button onclick="window.print()" style="font-family:Arial,sans-serif;font-size:13px;font-weight:600;padding:10px 22px;border-radius:8px;border:none;background:#2B35C1;color:#fff;cursor:pointer;">
+      Exportar PDF (Imprimir)
+    </button>
+  </div>
+
+  <!-- Header -->
+  <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:32px;padding-bottom:24px;border-bottom:2px solid #e0e0e0;flex-wrap:wrap;gap:16px;">
+    <div>
+      <div style="font-size:11px;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:#1D546D;margin-bottom:8px;">SALUS WEB · Automatización</div>
+      <h1 style="font-size:28px;font-weight:700;color:#061E29;line-height:1.1;margin-bottom:6px;">Reporte de ejecución</h1>
+      <div style="font-size:13px;color:#666;">${date}</div>
+    </div>
+    <div style="text-align:right;">
+      <div style="font-size:40px;font-weight:800;color:${globalRate>=90?'#27500A':globalRate>=70?'#854f0b':'#791F1F'};">${globalRate}%</div>
+      <div style="font-size:11px;color:#999;font-weight:600;letter-spacing:.05em;">TASA DE ÉXITO</div>
+    </div>
+  </div>
+
+  <!-- Global stats -->
+  <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:32px;">
+    ${[['Scripts', parsedReports.length, '#061E29'],['Tests totales', total, '#061E29'],['Passed', passed, '#27500A'],['Fallidos', failed+broken, '#791F1F']]
+      .map(([l,v,c]) => `<div style="background:#f8f8f8;border-radius:10px;padding:16px;text-align:center;">
+        <div style="font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#888;margin-bottom:6px;">${l}</div>
+        <div style="font-size:28px;font-weight:800;color:${c};">${v}</div>
+      </div>`).join('')}
+  </div>
+
+  ${recSection}
+
+  <h2 style="font-size:14px;font-weight:700;color:#1D546D;margin:0 0 16px;padding-bottom:8px;border-bottom:2px solid #d0e8f0;">Detalle por script</h2>
+  ${scriptRows}
+
+  <div style="margin-top:32px;padding-top:16px;border-top:1px solid #e0e0e0;font-size:11px;color:#bbb;text-align:center;">
+    Generado por QA Reporter — Salus OSDE · ${new Date().toLocaleString('es-AR')}
+  </div>
+</div>
+</body>
+</html>`;
+
+  const blob = new Blob([html], { type: 'text/html' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `Reporte_SalusWeb_${new Date().toISOString().slice(0, 10)}.html`;
+  a.click();
+}
+
+/* ── Export DOCX ── */
+async function downloadDoc() {
+  if (typeof window.docx === 'undefined') {
+    showErr('La librería para generar .docx no cargó aún. Esperá unos segundos y volvé a intentar, o verificá tu conexión a internet.');
+    return;
+  }
+  const btn = document.getElementById('btn-doc');
+  btn.innerHTML = '<span class="spinner-inline"></span>Generando...';
+  btn.disabled = true;
+  try {
+    const { Document, Packer, Paragraph, TextRun, AlignmentType, BorderStyle, LevelFormat, ShadingType, WidthType, Table, TableRow, TableCell } = window.docx;
+    const NAVY='061E29', BLUE='1D546D', RED='791F1F', GRN='27500A', AMB='854F0B', GRY='F3F4F4';
+    const br = () => ({ style: BorderStyle.SINGLE, size: 1, color: 'DDDDDD' });
+    const borders = { top: br(), bottom: br(), left: br(), right: br() };
+    const cW = 2340;
+    const mkcell = (label, val, color) => new TableCell({
+      borders, width: { size: cW, type: WidthType.DXA },
+      margins: { top: 60, bottom: 60, left: 80, right: 80 },
+      shading: { fill: GRY, type: ShadingType.CLEAR },
+      children: [
+        new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: label, size: 16, color: '666666', font: 'Arial' })] }),
+        new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: String(val), size: 22, bold: true, color, font: 'Arial' })] })
+      ]
+    });
+    const children = [];
+    const date = new Date().toLocaleDateString('es-AR');
+    const totT = parsedReports.reduce((a, r) => a + r.total, 0);
+    const totP = parsedReports.reduce((a, r) => a + r.passed, 0);
+    const totE = parsedReports.reduce((a, r) => a + r.failed + r.broken, 0);
+
+    children.push(new Paragraph({ alignment: AlignmentType.CENTER, spacing: { before: 0, after: 160 }, children: [new TextRun({ text: 'Reporte de ejecución — Salus Web', bold: true, size: 36, color: NAVY, font: 'Arial' })] }));
+    children.push(new Paragraph({ alignment: AlignmentType.CENTER, spacing: { before: 0, after: 200 }, children: [new TextRun({ text: `Fecha: ${date}  |  Scripts: ${parsedReports.length}  |  Tests: ${totT}  |  Passed: ${totP}  |  Errores: ${totE}`, size: 18, color: '555555', font: 'Arial' })] }));
+
+    const recHits = Object.values(recurrentMap).filter(r => {
+      const fps = new Set(parsedReports.flatMap(rep => rep.issues.map(i => buildErrorFingerprint(i.msg))));
+      return fps.has(r.fp) && r.dates.length >= 1;
+    });
+    if (recHits.length > 0) {
+      children.push(new Paragraph({ spacing: { before: 160, after: 80 }, border: { bottom: { style: BorderStyle.SINGLE, size: 4, color: AMB, space: 1 } }, children: [new TextRun({ text: 'Errores recurrentes', bold: true, size: 24, color: AMB, font: 'Arial' })] }));
+      for (const h of recHits) children.push(new Paragraph({ numbering: { reference: 'bullets', level: 0 }, spacing: { before: 40, after: 40 }, children: [new TextRun({ text: `[×${h.dates.length}] `, bold: true, size: 17, color: AMB, font: 'Arial' }), new TextRun({ text: h.msg.slice(0, 200), size: 17, font: 'Arial' }), new TextRun({ text: `  (${h.dates.join(', ')})`, size: 15, color: '888888', font: 'Arial' })] }));
+    }
+
+    children.push(new Paragraph({ spacing: { before: 200, after: 80 }, border: { bottom: { style: BorderStyle.SINGLE, size: 4, color: BLUE, space: 1 } }, children: [new TextRun({ text: 'Detalle por script', bold: true, size: 24, color: BLUE, font: 'Arial' })] }));
+    for (const r of parsedReports) {
+      const ok = r.issues.length === 0;
+      children.push(new Paragraph({ spacing: { before: 180, after: 40 }, children: [new TextRun({ text: r.file, bold: true, size: 20, color: ok ? GRN : RED, font: 'Arial' })] }));
+      children.push(new Paragraph({ spacing: { before: 0, after: 80 }, children: [new TextRun({ text: r.suite, size: 18, color: '444444', font: 'Arial' })] }));
+      children.push(new Table({ width: { size: 9360, type: WidthType.DXA }, columnWidths: [cW, cW, cW, cW], rows: [new TableRow({ children: [mkcell('Total', r.total, NAVY), mkcell('Passed', r.passed, GRN), mkcell('Failed', r.failed, RED), mkcell('Broken', r.broken, AMB)] })] }));
+      children.push(new Paragraph({ spacing: { before: 80, after: 40 }, children: [new TextRun({ text: ok ? 'Estado: Todo OK.' : `Estado: ${r.failed + r.broken} error(s) detectado(s).`, bold: true, size: 18, color: ok ? GRN : RED, font: 'Arial' })] }));
+      for (const i of r.issues) {
+        const rec = isRecurrent(i.msg);
+        const tag = rec && rec.dates.length > 0 ? `[Recurrente ×${rec.dates.length}] ` : '[Nuevo] ';
+        children.push(new Paragraph({ numbering: { reference: 'bullets', level: 0 }, spacing: { before: 30, after: 20 }, children: [new TextRun({ text: tag, bold: true, size: 17, color: rec && rec.dates.length > 0 ? AMB : BLUE, font: 'Arial' }), new TextRun({ text: i.msg.split('\n')[0].slice(0, 200), size: 17, font: 'Arial' })] }));
+        for (const a of parseAsserts(i.msg)) {
+          if (a.campo) children.push(new Paragraph({ spacing: { before: 10, after: 0 }, indent: { left: 720 }, children: [new TextRun({ text: 'Campo:      ', bold: true, size: 16, color: '555555', font: 'Arial' }), new TextRun({ text: a.campo, size: 16, font: 'Arial' })] }));
+          children.push(new Paragraph({ spacing: { before: 6, after: 0 }, indent: { left: 720 }, children: [new TextRun({ text: 'Esperado:   ', bold: true, size: 16, color: GRN, font: 'Arial' }), new TextRun({ text: a.expected || '(vacío)', size: 16, color: GRN, font: 'Arial' })] }));
+          children.push(new Paragraph({ spacing: { before: 6, after: 10 }, indent: { left: 720 }, children: [new TextRun({ text: 'Encontrado: ', bold: true, size: 16, color: RED, font: 'Arial' }), new TextRun({ text: a.found || '(vacío)', size: 16, color: RED, font: 'Arial' })] }));
+        }
+      }
+      children.push(new Paragraph({ spacing: { before: 60, after: 0 }, border: { bottom: { style: BorderStyle.SINGLE, size: 1, color: 'EEEEEE', space: 1 } }, children: [new TextRun({ text: '', size: 18 })] }));
+    }
+    const doc = new Document({
+      numbering: { config: [{ reference: 'bullets', levels: [{ level: 0, format: LevelFormat.BULLET, text: '\u2022', alignment: AlignmentType.LEFT, style: { paragraph: { indent: { left: 720, hanging: 360 } } } }] }] },
+      styles: { default: { document: { run: { font: 'Arial', size: 18 } } } },
+      sections: [{ properties: { page: { size: { width: 12240, height: 15840 }, margin: { top: 1080, right: 1080, bottom: 1080, left: 1080 } } }, children }]
+    });
+    const buf = await Packer.toBuffer(doc);
+    const blob = new Blob([buf], { type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `Reporte_SalusWeb_${new Date().toISOString().slice(0, 10)}.docx`;
+    a.click();
+  } catch(e) {
+    showErr('Error generando .docx: ' + e.message);
+  }
+  btn.textContent = 'Descargar .docx';
+  btn.disabled = false;
+}
+
+/* ── Events ── */
+document.getElementById('fi').addEventListener('change', e => {
+  if (e.target.files.length > 0) processFiles(Array.from(e.target.files));
+});
+const dz = document.getElementById('dz');
+dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('over'); });
+dz.addEventListener('dragleave', () => dz.classList.remove('over'));
+dz.addEventListener('drop', e => {
+  e.preventDefault(); dz.classList.remove('over');
+  const files = Array.from(e.dataTransfer.files).filter(f => f.name.endsWith('.html'));
+  if (files.length > 0) processFiles(files);
+  else showErr('Solo se aceptan archivos .html de Allure.');
+});
+
+loadHistory();
+</script>
+</body>
+</html>

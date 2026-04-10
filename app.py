@@ -1273,6 +1273,10 @@ def generate():
     return Response(html, mimetype="text/html",
                     headers={"Content-Disposition": f"attachment; filename={filename}"})
 
+@app.route("/analyzer")
+def analyzer():
+    return render_template("analyzer.html")
+
 @app.route("/demo")
 def demo_report():
     """Genera un reporte de ejemplo con los nuevos cambios solicitados."""

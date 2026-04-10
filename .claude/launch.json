@@ -1,0 +1,23 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "Remotion Studio",
+      "runtimeExecutable": "C:/Program Files/nodejs/node.exe",
+      "runtimeArgs": ["video/node_modules/@remotion/cli/dist/index.js", "studio", "video/src/index.ts"],
+      "port": 3000
+    },
+    {
+      "name": "Flask Dev Server",
+      "runtimeExecutable": "python",
+      "runtimeArgs": ["app.py"],
+      "port": 5000
+    },
+    {
+      "name": "Gunicorn (Production)",
+      "runtimeExecutable": "gunicorn",
+      "runtimeArgs": ["app:app", "--bind", "0.0.0.0:8000"],
+      "port": 8000
+    }
+  ]
+}

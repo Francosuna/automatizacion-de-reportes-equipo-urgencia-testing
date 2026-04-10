@@ -18,7 +18,23 @@
       "Bash(powershell.exe -Command 'Get-ChildItem '\\\\''HKLM:\\\\SOFTWARE\\\\Python\\\\PythonCore'\\\\'' -ErrorAction SilentlyContinue | ForEach-Object { Get-ItemProperty \\(Join-Path $_.PSPath '\\\\''InstallPath'\\\\''\\) -ErrorAction SilentlyContinue } | Select-Object '\\\\''\\(default\\)'\\\\'', ExecutablePath')",
       "Bash(powershell.exe -Command \"& py --version\")",
       "Bash(powershell.exe -Command \"where.exe python\")",
-      "Bash(powershell.exe -Command \"where.exe py\")"
+      "Bash(powershell.exe -Command \"where.exe py\")",
+      "Bash(npx playwright:*)",
+      "Bash(mkdir -p \"g:/automatizacion-de-reportes-equipo-urgencia-testing/video/public/screenshots\")",
+      "Bash(mkdir -p \"g:/automatizacion-de-reportes-equipo-urgencia-testing/video/src/scenes\")",
+      "Bash(mkdir -p \"g:/automatizacion-de-reportes-equipo-urgencia-testing/video/scripts\")",
+      "Bash(node scripts/capture.js)",
+      "Bash(claude mcp:*)",
+      "Bash(npx tsc:*)",
+      "Bash(npm run:*)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:3000)",
+      "Bash(npx remotion:*)",
+      "Bash(node_modules/.bin/remotion studio:*)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:5000/generar-demo)",
+      "Bash(curl -s http://localhost:5000/generar-demo)",
+      "Bash(python app.py)",
+      "Bash(curl -s http://localhost:5000/ -o /dev/null -w \"%{http_code}\")",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:5000/)"
     ]
   }
 }
