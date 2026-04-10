@@ -89,7 +89,7 @@
     /* ── Sections ── */
     .section {
       background: var(--surface); border: 1px solid var(--border);
-      border-radius: var(--radius); margin-bottom: 14px; overflow: hidden;
+      border-radius: var(--radius); margin-bottom: 14px; overflow: visible; position: relative;
       box-shadow: 0 4px 16px rgba(0,0,0,.55), 0 1px 4px rgba(0,0,0,.35);
       transition: border-color .2s;
     }
@@ -141,6 +141,7 @@
     }
     .field textarea { resize: vertical; min-height: 88px; line-height: 1.65; }
     .field .hint { font-size: 11px; color: var(--muted); line-height: 1.5; }
+
     .field .hint a { color: #9ba5f5; text-decoration: none; }
     .field .hint a:hover { text-decoration: underline; }
 
@@ -239,6 +240,9 @@
       border-radius: 0 0 var(--radius-sm) var(--radius-sm); overflow: hidden;
       box-shadow: 0 8px 28px rgba(0,0,0,.6);
     }
+    .singleselect .multiselect-dropdown {
+      position: absolute; top: 100%; left: 0; right: 0; z-index: 500;
+    }
     .multiselect-dropdown.open { display: block; }
     .multiselect-option {
       display: flex; align-items: center; gap: 10px;
@@ -277,7 +281,7 @@
     .pill-remove:hover { color: var(--red); }
 
     /* ── Single-select ── */
-    .singleselect { position: relative; }
+    .singleselect { position: relative; z-index: 100; }
     .singleselect-option.selected { background: var(--accent-dim); }
     .singleselect-option.selected .option-name { color: #9ba5f5; font-weight: 500; }
 
@@ -483,7 +487,27 @@
           </div>
           <div class="field">
             <label>Resultado del ciclo</label>
-            <input type="text" name="resultado" placeholder="ej: Fallido con incidentes críticos y altos">
+            <input type="hidden" name="resultado" id="resultado-value">
+            <div class="singleselect" id="ss-resultado">
+              <div class="multiselect-trigger" id="ss-resultado-trigger" onclick="toggleSS('resultado')">
+                <span class="multiselect-trigger-text placeholder" id="ss-resultado-label">Seleccioná o escribí el resultado…</span>
+                <svg class="multiselect-arrow" id="ss-resultado-arrow" viewBox="0 0 10 6" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M1 1l4 4 4-4"/></svg>
+              </div>
+              <div class="multiselect-dropdown" id="ss-resultado-dropdown">
+                <div class="multiselect-option singleselect-option" data-value="Exitoso" onclick="selectSS('resultado', 'Exitoso', this)"><span class="option-name">Exitoso</span></div>
+                <div class="multiselect-option singleselect-option" data-value="Exitoso con incidentes bajos" onclick="selectSS('resultado', 'Exitoso con incidentes bajos', this)"><span class="option-name">Exitoso con incidentes bajos</span></div>
+                <div class="multiselect-option singleselect-option" data-value="Exitoso con incidentes medios" onclick="selectSS('resultado', 'Exitoso con incidentes medios', this)"><span class="option-name">Exitoso con incidentes medios</span></div>
+                <div class="multiselect-option singleselect-option" data-value="Fallido con incidentes altos y críticos" onclick="selectSS('resultado', 'Fallido con incidentes altos y críticos', this)"><span class="option-name">Fallido con incidentes altos y críticos</span></div>
+                <div class="multiselect-option singleselect-option" data-value="Fallido con incidentes bajos" onclick="selectSS('resultado', 'Fallido con incidentes bajos', this)"><span class="option-name">Fallido con incidentes bajos</span></div>
+                <div style="padding:8px 14px;border-top:1px solid var(--border);">
+                  <input type="text" id="resultado-custom-input" placeholder="O escribí uno personalizado…"
+                    style="width:100%;background:var(--bg);border:1px solid var(--border2);border-radius:6px;padding:7px 10px;font-size:13px;color:var(--text);outline:none;"
+                    onclick="event.stopPropagation()"
+                    oninput="setResultadoCustom(this.value)"
+                    onkeydown="if(event.key==='Enter'){event.preventDefault();closeSS('resultado');}">
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -899,10 +923,15 @@
     function selectSS(id, value, el) {
       event.stopPropagation();
       document.getElementById(`${id}-value`).value = value;
-      document.getElementById(`ss-${id}-label`).textContent = value;
+      const label = document.getElementById(`ss-${id}-label`);
+      label.textContent = value;
+      label.classList.remove("placeholder");
       document.querySelectorAll(`#ss-${id}-dropdown .singleselect-option`).forEach(o => o.classList.remove("selected"));
       el.classList.add("selected");
       if (id === "equipo") rebuildProductoOptions(value);
+      // limpiar campo custom si existe
+      const customInput = document.getElementById(`${id}-custom-input`);
+      if (customInput) customInput.value = "";
       closeSS(id);
     }
     function rebuildProductoOptions(equipo) {
@@ -916,10 +945,16 @@
       }
     }
     document.addEventListener("click", function (e) {
-      ["equipo", "producto"].forEach(id => {
+      ["equipo", "producto", "resultado"].forEach(id => {
         if (_ssOpen[id] && !document.getElementById(`ss-${id}`).contains(e.target)) closeSS(id);
       });
     });
+    function setResultadoCustom(val) {
+      document.getElementById("resultado-value").value = val;
+      document.getElementById("ss-resultado-label").textContent = val || "Seleccioná o escribí el resultado…";
+      document.getElementById("ss-resultado-label").classList.toggle("placeholder", !val);
+      document.querySelectorAll("#ss-resultado-dropdown .singleselect-option").forEach(o => o.classList.remove("selected"));
+    }
 
     // ── Guardar en historial ───────────────────────
     async function guardarEnHistorial() {

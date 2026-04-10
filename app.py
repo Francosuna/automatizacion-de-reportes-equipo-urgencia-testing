@@ -4,7 +4,7 @@ Cada suite del Test Plan se muestra como sección independiente,
 replicando el formato real del equipo.
 """
 
-import os, json, base64, urllib.request, urllib.error
+import os, json, re, base64, urllib.request, urllib.error
 import psycopg2, psycopg2.extras
 from datetime import datetime
 from collections import defaultdict
@@ -306,6 +306,10 @@ def _collect_bugs_from_feature(feature_id):
             # Bug directo bajo la Feature
             result.append((us, us_title))
         elif wi_type in ("User Story","Feature","Task","Epic"):
+            # Saltar contenedores de versión (ej: "Versión 16.10") — son sub-UHs, no módulos reales
+            _VERSION_RE = re.compile(r'^[Vv]ersi[oó]n\s+\d+[\.\d]*$')
+            if _VERSION_RE.match(us_title.strip()):
+                continue
             # Bajar a buscar bugs dentro de la User Story
             bug_children = get_work_item_children(us["id"])
             for child in bug_children:
@@ -822,13 +826,14 @@ def generate_report_html(form, demo_data=None):
         
         alcance_data = demo_data["alcance"]
         inc_data     = demo_data["inc"]
-        prev_data    = demo_data.get("prev")
+        prev_data_42 = demo_data.get("prev_42")
+        prev_data_43 = demo_data.get("prev_43")
         total_all    = demo_data["total_all"]
         pass_all     = demo_data["pass_all"]
         fail_all     = demo_data["fail_all"]
         block_all    = demo_data["block_all"]
         notrun_all   = demo_data["notrun_all"]
-        plans_data   = []
+        plans_data   = demo_data.get("plans", [])
     else:
         # MODO REAL
         prod    = form.get("producto","SALUS WEB")
@@ -927,7 +932,7 @@ def generate_report_html(form, demo_data=None):
     inc_section = _incidents_block(
         inc_data,
         section_num="4.1",
-        title=f"Incidentes detectados durante las pruebas del ciclo {ciclo} — Versión {version} de SALUS Web",
+        title=f"Incidentes detectados durante las pruebas del ciclo {ciclo} — Versión {version} de {prod}",
         bug_label="Detalle de bugs detectados"
     )
 
@@ -1220,6 +1225,11 @@ def home():
 def index():
     return render_template("index.html")
 
+@app.route("/generar-demo")
+def index_demo():
+    """Versión demo del formulario: sin datos de equipo, pre-llenado con Franco Osuna."""
+    return render_template("index.html", demo_mode=True, demo_responsable="Franco Osuna")
+
 @app.route("/api/plan-name")
 def plan_name():
     plan_id = request.args.get("id","")
@@ -1279,96 +1289,192 @@ def analyzer():
 
 @app.route("/demo")
 def demo_report():
-    """Genera un reporte de ejemplo con los nuevos cambios solicitados."""
-    now     = datetime.now().strftime("%d/%m/%Y %H:%M")
-    prod    = "SALUS WEB"
-    version = "v17.2.1"
-    ciclo   = "N°2"
-    agrup   = "AGRUPADOR URGENCIAS - SALUS"
+    """Genera un reporte de ejemplo con datos realistas (sin Azure PAT)."""
+    prod    = "Demo App"
+    version = "v18.3.0"
+    ciclo   = "N°3"
+    agrup   = "AGRUPADOR FUNCIONAL"
     result  = "Fallido con incidentes críticos y altos"
-    fi_plan = "07/03/2026"; ff_plan = "21/03/2026"
-    fi_real = "07/03/2026"; ff_real = "25/03/2026"
-    resps   = ["Franco Osuna", "Rafael Jose Cañizalez Mendoza", "Gloria Huilen Garcia"]
+    fi_plan = "24/03/2026"; ff_plan = "07/04/2026"
+    fi_real = "24/03/2026"; ff_real = "09/04/2026"
+    resps   = ["Franco Osuna"]
     alcance = ["Smoke Test", "Paquete de incidencias", "Pruebas integrales"]
-    riesgos = "Inestabilidad en el ambiente de integración durante ventanas de deploy."
-    observaciones = "Se requiere hotfix inmediato en el módulo de Formulario del caso."
+    riesgos = "Inestabilidad en el ambiente de integración durante ventanas de deploy nocturno."
+    observaciones = "Se requiere hotfix urgente en módulo de Formulario del Caso antes del próximo release."
 
-    # Mock alcance_data
+    # ── Mock alcance_data (sección 1) ──────────────────────────
     alc_data = {
-        "uh_id": 9999, "uh_title": "MVP-2. Alcance Funcional",
-        "total": 5,
+        "uh_id": 91200, "uh_title": "CT3. Alcance funcional v18.3.0",
+        "total": 7,
         "bugs": [
-            {"id": 8801, "title": "Error al procesar adjuntos duplicados", "state": "Closed"},
-            {"id": 8802, "title": "Fuga de memoria en exportación masiva", "state": "Active"}
+            {"id": 91101, "title": "Adjuntos DICOM no se procesan al guardar el caso", "state": "Active"},
+            {"id": 91102, "title": "Timeout en generación de reportes de consultas masivos", "state": "Active"},
+            {"id": 91103, "title": "Doble carga al confirmar turno por doble click", "state": "Closed"},
         ],
         "tasks": [
-            {"id": 8810, "title": "Nuevo módulo de Auditoría", "state": "Done"},
-            {"id": 8811, "title": "Integración con API Seguros", "state": "In Progress"},
-            {"id": 8812, "title": "Rediseño de interfaz de login", "state": "To Do"}
+            {"id": 91110, "title": "Refactor módulo de Autenticación SSO", "state": "Done"},
+            {"id": 91111, "title": "Integración con API de Padrones SISA", "state": "In Progress"},
+            {"id": 91112, "title": "Mejora de performance en grilla de Historial Clínico", "state": "Done"},
+            {"id": 91113, "title": "Nuevo panel de Liquidaciones y Facturación", "state": "To Do"},
         ]
     }
 
-    # Mock incidents (sorting check)
-    mock_incidents = [
-        {"id":1,"title":"Bug 1","state":"New","sev":"Crítico","module":"Formulario del caso"},
-        {"id":2,"title":"Bug 2","state":"Active","sev":"Alto","module":"Formulario del caso"},
-        {"id":3,"title":"Bug 3","state":"Active","sev":"Alto","module":"Formulario del caso"},
-        {"id":4,"title":"Bug 4","state":"Active","sev":"Mediano","module":"Formulario del caso"},
-        {"id":5,"title":"Bug 5","state":"Active","sev":"Bajo","module":"Formulario del caso"},
-        {"id":6,"title":"Bug 6","state":"Active","sev":"Alto","module":"Listados"},
-        {"id":7,"title":"Bug 7","state":"Active","sev":"Alto","module":"Listados"},
-        {"id":8,"title":"Bug 8","state":"Active","sev":"Crítico","module":"Integraciones"}
+    # ── Mock planes y suites (secciones 2 y 3) ─────────────────
+    def _mk_suite(name, passed, failed, blocked=0, notrun=0):
+        total = passed + failed + blocked + notrun
+        fail_b = failed + blocked
+        if fail_b == 0:
+            rl, rs = "Exitoso", "background:#EAF3DE;color:#3B6D11;"
+        elif fail_b / total <= 0.10:
+            rl, rs = "Exitoso con incidentes menores", "background:#FAEEDA;color:#633806;"
+        elif fail_b / total <= 0.30:
+            rl, rs = "Con incidencias moderadas", "background:#E6F1FB;color:#185FA5;"
+        else:
+            rl, rs = "Con incidencias críticas", "background:#FCEBEB;color:#791F1F;"
+        return {
+            "name": name, "total": total,
+            "counts": {"passed": passed, "failed": failed, "blocked": blocked},
+            "result_label": rl, "result_style": rs
+        }
+
+    plans_mock = [
+        {
+            "id": 1001, "name": "TC3 — Demo App v18.3.0 · Smoke Test",
+            "total": 74, "counts": {"passed": 72, "failed": 2, "blocked": 0},
+            "result_label": "Exitoso con incidentes menores", "result_style": "background:#FAEEDA;color:#633806;",
+            "suites": [
+                _mk_suite("Smoke Test · Formulario del Caso",       25,  2),
+                _mk_suite("Smoke Test · Gestión de Turnos",         32,  0),
+                _mk_suite("Smoke Test · Autenticación y Accesos",   15,  0),
+            ]
+        },
+        {
+            "id": 1002, "name": "TC3 — Demo App v18.3.0 · Paquete de Incidencias",
+            "total": 103, "counts": {"passed": 88, "failed": 11, "blocked": 1},
+            "result_label": "Con incidencias críticas", "result_style": "background:#FCEBEB;color:#791F1F;",
+            "suites": [
+                _mk_suite("Formulario del Caso",            36, 5, blocked=1, notrun=2),
+                _mk_suite("Gestión de Turnos",              22, 3),
+                _mk_suite("Historial Clínico",              18, 2),
+                _mk_suite("Integraciones",                  12, 1, notrun=1),
+            ]
+        },
+        {
+            "id": 1003, "name": "TC3 — Demo App v18.3.0 · Pruebas Integrales",
+            "total": 41, "counts": {"passed": 37, "failed": 2, "blocked": 0},
+            "result_label": "Exitoso con incidentes menores", "result_style": "background:#FAEEDA;color:#633806;",
+            "suites": [
+                _mk_suite("Flujo Alta de Afiliado",                 20, 0),
+                _mk_suite("Flujo Autorización + Liquidación",       17, 2, notrun=2),
+            ]
+        },
     ]
-    
-    by_sev = defaultdict(list)
-    by_mod = defaultdict(lambda: defaultdict(int))
+
+    # ── Mock incidentes ciclo actual (sección 4.1) ──────────────
+    mock_incidents = [
+        {"id": 91301, "title": "Excepción no controlada al guardar caso con adjunto de tipo DICOM",
+         "state": "Active", "sev": "Crítico", "module": "Formulario del Caso"},
+        {"id": 91302, "title": "Error 500 al confirmar turno online desde la aplicación móvil",
+         "state": "Active", "sev": "Crítico", "module": "Gestión de Turnos"},
+        {"id": 91303, "title": "Filtro por fecha no respeta zona horaria en reporte de consultas",
+         "state": "Active", "sev": "Alto",    "module": "Historial Clínico"},
+        {"id": 91304, "title": "Validación de cobertura retorna vacío para afiliados con plan 210",
+         "state": "Active", "sev": "Alto",    "module": "Integraciones"},
+        {"id": 91305, "title": "Historial clínico no carga cuando el paciente supera los 500 registros",
+         "state": "Active", "sev": "Alto",    "module": "Historial Clínico"},
+        {"id": 91306, "title": "Botón 'Confirmar derivación' queda inactivo tras expiración de sesión",
+         "state": "Active", "sev": "Alto",    "module": "Formulario del Caso"},
+        {"id": 91307, "title": "Etiqueta 'Pendiente de autorización' persiste tras aprobación de solicitud",
+         "state": "Active", "sev": "Mediano", "module": "Formulario del Caso"},
+        {"id": 91308, "title": "PDF de resumen de turno no incluye médico de cabecera cuando el campo está vacío",
+         "state": "Active", "sev": "Mediano", "module": "Gestión de Turnos"},
+        {"id": 91309, "title": "Texto truncado en modal de confirmación de baja de afiliado",
+         "state": "Active", "sev": "Bajo",    "module": "Liquidaciones"},
+        {"id": 91310, "title": "Color de fondo incorrecto en fila seleccionada de grilla de liquidaciones",
+         "state": "Active", "sev": "Bajo",    "module": "Liquidaciones"},
+    ]
+    by_sev_i = defaultdict(list)
+    by_mod_i = defaultdict(lambda: defaultdict(int))
     for i in mock_incidents:
-        by_sev[i["sev"]].append(i)
-        by_mod[i["module"]][i["sev"]] += 1
-    
+        by_sev_i[i["sev"]].append(i)
+        by_mod_i[i["module"]][i["sev"]] += 1
     inc_data = {
-        "uh_id": 90545, "uh_title": "MVP-2. Ciclo de testing 2",
+        "uh_id": 91200, "uh_title": "CT3. Ciclo de testing 3",
         "total": len(mock_incidents),
         "incidents": mock_incidents,
-        "by_sev": dict(by_sev),
-        "by_module": {m: dict(v) for m, v in by_mod.items()}
+        "by_sev": dict(by_sev_i),
+        "by_module": {m: dict(v) for m, v in by_mod_i.items()}
     }
 
-    # Mock prev_data
-    mock_prev = {
-        "uh_id": 8800, "uh_title": "MVP-2. Ciclo de testing 1",
-        "total": 2,
-        "incidents": [
-            {"id": 8701, "title": "Error visual en grilla", "state": "Closed", "sev": "Bajo", "module": "General"},
-            {"id": 8702, "title": "Timeout en reporte", "state": "Active", "sev": "Alto", "module": "Reportes"}
-        ],
-        "by_sev": {"Bajo": [{"id": 8701, "sev": "Bajo"}], "Alto": [{"id": 8702, "sev": "Alto"}]},
-        "by_module": {"General": {"Bajo": 1}, "Reportes": {"Alto": 1}}
+    # ── Mock prev_42 (bugs del alcance — mezcla closed/active → 4.2 y 4.2.1) ──
+    mock_prev_42_incidents = [
+        {"id": 90801, "title": "Doble carga de formulario al confirmar turno por doble click",
+         "state": "Closed", "sev": "Alto",    "module": "Gestión de Turnos"},
+        {"id": 90802, "title": "Campos del formulario no se limpian al cambiar de afiliado",
+         "state": "Closed", "sev": "Mediano", "module": "Formulario del Caso"},
+        {"id": 90803, "title": "Error de CORS intermitente al consultar endpoint de autorizaciones",
+         "state": "Closed", "sev": "Alto",    "module": "Integraciones"},
+        {"id": 90804, "title": "Timeout al generar reportes de consultas con más de 3 meses de rango",
+         "state": "Active", "sev": "Alto",    "module": "Historial Clínico"},
+        {"id": 90805, "title": "Paginación omite el último registro en listado de afiliados filtrado",
+         "state": "Active", "sev": "Mediano", "module": "Autenticación y Accesos"},
+    ]
+    by_sev_42 = defaultdict(list)
+    by_mod_42 = defaultdict(lambda: defaultdict(int))
+    for i in mock_prev_42_incidents:
+        by_sev_42[i["sev"]].append(i)
+        by_mod_42[i["module"]][i["sev"]] += 1
+    prev_42_data = {
+        "uh_id": 90800, "uh_title": "CT2. Alcance funcional v18.2.0",
+        "total": len(mock_prev_42_incidents),
+        "incidents": mock_prev_42_incidents,
+        "by_sev": dict(by_sev_42),
+        "by_module": {m: dict(v) for m, v in by_mod_42.items()}
     }
 
-    # Totals
-    total_all = 205; pass_all = 183; fail_all = 13; block_all = 0; notrun_all = 9
+    # ── Mock prev_43 (ciclo anterior — solo bugs pendientes importan para 4.3) ──
+    mock_prev_43_incidents = [
+        {"id": 89901, "title": "Fallo de sincronización con SISA durante actualizaciones de padrón nocturnas",
+         "state": "Active", "sev": "Alto",    "module": "Integraciones"},
+        {"id": 89902, "title": "Búsqueda de afiliado por DNI retorna resultados duplicados",
+         "state": "Active", "sev": "Alto",    "module": "Autenticación y Accesos"},
+        {"id": 89903, "title": "Spinner de carga no desaparece tras error de red en Gestión de Turnos",
+         "state": "Active", "sev": "Mediano", "module": "Gestión de Turnos"},
+    ]
+    by_sev_43 = defaultdict(list)
+    by_mod_43 = defaultdict(lambda: defaultdict(int))
+    for i in mock_prev_43_incidents:
+        by_sev_43[i["sev"]].append(i)
+        by_mod_43[i["module"]][i["sev"]] += 1
+    prev_43_data = {
+        "uh_id": 89900, "uh_title": "CT2. Ciclo de testing 2",
+        "total": len(mock_prev_43_incidents),
+        "incidents": mock_prev_43_incidents,
+        "by_sev": dict(by_sev_43),
+        "by_module": {m: dict(v) for m, v in by_mod_43.items()}
+    }
 
-    # Reuse existing blocks (simplified for demo)
-    # Note: In real app we would call generate_report_html with mock form, 
-    # but here we build manually to ensure demo works regardless of Azure PAT.
-    
-    # We call generate_report_html but mock the parts that call Azure
-    from flask import request as flask_req
-    # This is a trick to populate the form data for the demo
+    # ── Totales globales ────────────────────────────────────────
+    total_all = 218; pass_all = 197; fail_all = 15; block_all = 1; notrun_all = 5
+
     html, _ = generate_report_html({
         "producto": prod, "version": version, "ciclo": ciclo, "agrupador": agrup,
-        "resultado": result, "fecha_inicio_plan": fi_plan, "fecha_fin_plan": ff_plan,
+        "resultado": result,
+        "fecha_inicio_plan": fi_plan, "fecha_fin_plan": ff_plan,
         "fecha_inicio_real": fi_real, "fecha_fin_real": ff_real,
-        "responsables": resps, "alcance": alcance, "riesgos": riesgos, "observaciones": observaciones,
-        "plan_ids": ["123"] # dummy
+        "responsables": resps, "alcance": alcance,
+        "riesgos": riesgos, "observaciones": observaciones,
+        "plan_ids": ["1001", "1002", "1003"]
     }, demo_data={
-        "alcance": alc_data, 
-        "inc": inc_data, 
-        "prev": mock_prev,
-        "total_all": total_all, "pass_all": pass_all, "fail_all": fail_all, "block_all": block_all, "notrun_all": notrun_all
+        "alcance":   alc_data,
+        "inc":       inc_data,
+        "prev_42":   prev_42_data,
+        "prev_43":   prev_43_data,
+        "plans":     plans_mock,
+        "total_all": total_all, "pass_all": pass_all,
+        "fail_all":  fail_all,  "block_all": block_all, "notrun_all": notrun_all,
     })
-    
+
     return Response(html, mimetype="text/html")
 
 # ── Admin routes ───────────────────────────────────────────────
