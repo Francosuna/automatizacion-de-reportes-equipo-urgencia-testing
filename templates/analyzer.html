@@ -148,6 +148,46 @@
       color: var(--muted); cursor: pointer; transition: color .15s, border-color .15s;
     }
     .btn-ghost:hover { color: var(--red); border-color: var(--red-border); }
+    .btn-history {
+      font-family: "DM Sans", sans-serif; font-size: 11px; font-weight: 500;
+      padding: 5px 12px; border-radius: var(--radius-xs);
+      border: 1px solid var(--border2); background: transparent;
+      color: var(--muted); cursor: pointer; transition: color .15s, border-color .15s;
+      display: flex; align-items: center; gap: 5px;
+    }
+    .btn-history:hover { color: var(--text); border-color: var(--accent); }
+    .btn-history svg { transition: transform .2s; }
+    .btn-history.open svg { transform: rotate(180deg); }
+
+    /* ── Historial desplegable ── */
+    .history-panel {
+      display: none; margin-top: 10px;
+      border: 1px solid var(--border2); border-radius: var(--radius-sm);
+      background: var(--surface); overflow: hidden;
+    }
+    .history-panel.open { display: block; }
+    .history-exec {
+      border-bottom: 1px solid var(--border);
+    }
+    .history-exec:last-child { border-bottom: none; }
+    .history-exec-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 10px 14px; cursor: pointer; transition: background .12s;
+      user-select: none;
+    }
+    .history-exec-header:hover { background: var(--surface2); }
+    .history-exec-header .exec-date { font-size: 12px; font-weight: 600; color: var(--text); }
+    .history-exec-header .exec-meta { font-size: 11px; color: var(--muted); }
+    .history-exec-header .exec-chevron { color: var(--muted); transition: transform .2s; flex-shrink: 0; }
+    .history-exec.open .exec-chevron { transform: rotate(180deg); }
+    .history-exec-body { display: none; padding: 0 14px 12px; }
+    .history-exec.open .history-exec-body { display: block; }
+    .history-suite-row {
+      font-size: 11px; color: var(--muted); padding: 3px 0;
+      border-bottom: 1px dashed var(--border);
+    }
+    .history-suite-row:last-child { border-bottom: none; }
+    .history-suite-name { font-weight: 600; color: var(--text); }
 
     /* ── Error / info msgs ── */
     .err-msg {
@@ -386,12 +426,19 @@
     </div>
     <input type="file" id="fi" accept=".html" multiple style="display:none">
     <div class="info-bar">
-      <div class="storage-info" id="storage-info">
-        <div class="dot" style="background:var(--muted);"></div>
-        <span>Cargando historial...</span>
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+        <div class="storage-info" id="storage-info">
+          <div class="dot" style="background:var(--muted);"></div>
+          <span>Cargando historial...</span>
+        </div>
+        <button class="btn-history" id="btn-history" onclick="toggleHistoryPanel()" style="display:none;">
+          Ver historial
+          <svg width="10" height="6" viewBox="0 0 10 6" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M1 1l4 4 4-4"/></svg>
+        </button>
       </div>
       <button class="btn-ghost" onclick="clearHistory()">Limpiar historial</button>
     </div>
+    <div class="history-panel" id="history-panel"></div>
   </div>
 
   <div class="err-msg" id="err-msg"></div>
@@ -470,15 +517,56 @@ function clearHistory() {
   updateStorageInfo();
 }
 function updateStorageInfo() {
-  const el = document.getElementById('storage-info');
+  const el    = document.getElementById('storage-info');
+  const btn   = document.getElementById('btn-history');
   const count = history.executions.length;
   if (count === 0) {
     el.innerHTML = `<div class="dot" style="background:var(--muted);"></div><span>Sin historial previo</span>`;
+    btn.style.display = 'none';
   } else {
     const last = history.executions[history.executions.length - 1];
     el.innerHTML = `<div class="dot" style="background:var(--green);"></div>
       <span>${count} ejecución${count!==1?'es':''} guardadas — última: ${last.date}</span>`;
+    btn.style.display = 'flex';
+    renderHistoryPanel();
   }
+}
+function toggleHistoryPanel() {
+  const panel = document.getElementById('history-panel');
+  const btn   = document.getElementById('btn-history');
+  const open  = panel.classList.toggle('open');
+  btn.classList.toggle('open', open);
+  btn.querySelector('span') && (btn.querySelector('span').textContent = open ? 'Ocultar historial' : 'Ver historial');
+  // actualizar texto del botón (primer nodo de texto)
+  for (const node of btn.childNodes) {
+    if (node.nodeType === 3) { node.textContent = open ? 'Ocultar historial' : 'Ver historial'; break; }
+  }
+}
+function renderHistoryPanel() {
+  const panel = document.getElementById('history-panel');
+  const execs = [...history.executions].reverse(); // más reciente primero
+  panel.innerHTML = execs.map((exec, i) => {
+    const totalIssues = exec.reports.reduce((s, r) => s + (r.issues?.length || 0), 0);
+    const suiteRows = exec.reports.map(r =>
+      `<div class="history-suite-row">
+        <span class="history-suite-name">${r.suite}</span>
+        — ${r.issues?.length || 0} error${(r.issues?.length||0)!==1?'es':''}
+      </div>`
+    ).join('');
+    return `<div class="history-exec" id="hexec-${i}">
+      <div class="history-exec-header" onclick="toggleExec(${i})">
+        <div>
+          <span class="exec-date">${exec.date}</span>
+          <span class="exec-meta" style="margin-left:10px;">${exec.reports.length} suite${exec.reports.length!==1?'s':''} · ${totalIssues} error${totalIssues!==1?'es':''}</span>
+        </div>
+        <svg class="exec-chevron" width="10" height="6" viewBox="0 0 10 6" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M1 1l4 4 4-4"/></svg>
+      </div>
+      <div class="history-exec-body">${suiteRows || '<span style="font-size:11px;color:var(--muted);">Sin errores registrados</span>'}</div>
+    </div>`;
+  }).join('');
+}
+function toggleExec(i) {
+  document.getElementById(`hexec-${i}`).classList.toggle('open');
 }
 
 /* ── Fingerprint & recurrents ── */
