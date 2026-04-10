@@ -258,7 +258,7 @@ def build_plan_data(plan_id):
         block = counts.get("blocked",0)
         passed = counts.get("passed",0)
 
-        if fail == 0 and block == 0:
+        if fail == 0:
             result_label = "Exitoso"
             result_style = "background:#EAF3DE;color:#3B6D11;"
         else:
@@ -894,9 +894,12 @@ def generate_report_html(form, demo_data=None):
     for pd in plans_data:
         for s in pd["suites"]:
             t = s["total"]; c_s = s["counts"]
-            fail_cnt  = c_s.get("failed",0) + c_s.get("blocked",0)
+            fail_cnt  = c_s.get("failed",0)
             pass_cnt  = c_s.get("passed",0)
-            ip = pct(fail_cnt, t)
+            if pass_cnt + fail_cnt > 0:
+                ip = pct(fail_cnt, pass_cnt + fail_cnt)
+            else:
+                ip = 0
             # Etiqueta descriptiva estandarizada
             if fail_cnt == 0:
                 res_txt   = "Exitoso"
