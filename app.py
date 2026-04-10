@@ -278,9 +278,8 @@ def build_plan_data(plan_id):
             plan_counts[k] += v
 
     fail  = plan_counts.get("failed",0)
-    block = plan_counts.get("blocked",0)
-    result_label = "Exitoso" if fail == 0 and block == 0 else "Fallido con incidentes"
-    result_style = "background:#EAF3DE;color:#3B6D11;" if fail == 0 and block == 0 else "background:#FCEBEB;color:#791F1F;"
+    result_label = "Exitoso" if fail == 0 else "Fallido con incidentes"
+    result_style = "background:#EAF3DE;color:#3B6D11;" if fail == 0 else "background:#FCEBEB;color:#791F1F;"
 
     return {
         "id": plan_id, "name": plan_name,
@@ -401,12 +400,7 @@ def _suite_card(suite, prod):
     notrun  = t - passed - failed - blocked
 
     ep = pct(passed, t)
-    ip = pct(failed+blocked, t)
-
-    # Detectar "No Aplica" (casos que quedaron sin ejecutar intencionalmente)
-    noapl_note = ""
-    if notrun > 0 and failed == 0 and blocked == 0:
-        noapl_note = f'<span style="font-size:12px;color:#888;margin-left:8px;">Casos No Aplica: {notrun} ({pct(notrun,t)}%)</span>'
+    ip = pct(failed, t)  # solo failed cuenta como incidencia
 
     return f"""
     <section style="margin-bottom:20px;background:#fff;border-radius:12px;border:1px solid #EDECEA;overflow:hidden;">
@@ -425,15 +419,13 @@ def _suite_card(suite, prod):
         <div style="font-size:13px;color:#3d3d3a;margin-bottom:4px;">
           Casos exitosos: <b>{passed} ({ep}%)</b>
         </div>
-        <div style="font-size:13px;color:#3d3d3a;margin-bottom:10px;">
-          Casos con incidencia: <b>{failed+blocked} ({ip}%)</b>{noapl_note}
-        </div>
+        {'<div style="font-size:13px;color:#3d3d3a;margin-bottom:10px;">Casos con incidencia: <b>' + str(failed) + ' (' + str(ip) + '%)</b></div>' if failed > 0 else ''}
         {_bar(c, t)}
         <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;">
-          {_pill("Passed",  passed,  "background:#EAF3DE;color:#3B6D11;")}
-          {_pill("Failed",  failed,  "background:#FCEBEB;color:#791F1F;")}
-          {_pill("Blocked", blocked, "background:#FAEEDA;color:#633806;")}
-          {_pill("Not Run", notrun,  "background:#F1EFE8;color:#5F5E5A;") if notrun else ""}
+          {_pill("Passed",   passed,  "background:#EAF3DE;color:#3B6D11;")}
+          {_pill("Failed",   failed,  "background:#FCEBEB;color:#791F1F;") if failed else ""}
+          {_pill("Blocked",  blocked, "background:#FAEEDA;color:#633806;") if blocked else ""}
+          {_pill("Not Applicable", notrun, "background:#F1EFE8;color:#5F5E5A;") if notrun else ""}
         </div>
       </div>
     </section>"""
